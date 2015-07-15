@@ -2,7 +2,7 @@ package main
 
 import (
 	"os"
-	"github.com/appfac/cli/command"
+	"github.com/Dilhasha/AppFacCLI/cli/command"
 	"github.com/codegangsta/cli"
 	"fmt"
 )
