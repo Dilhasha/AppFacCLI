@@ -8,8 +8,8 @@ ROOT_DIR=$(cd $(dirname $(dirname $0)) && pwd)
 
 CLI_GOPATH=$ROOT_DIR/tmp/cli_gopath
 rm -rf $CLI_GOPATH
-mkdir -p $CLI_GOPATH/src/github.com/appfac/
-ln -s $ROOT_DIR $CLI_GOPATH/src/github.com/appfac/cli
+mkdir -p $CLI_GOPATH/src/github.com/Dilhasha/AppFacCLI/
+ln -s $ROOT_DIR $CLI_GOPATH/src/github.com/Dilhasha/AppFacCLI/cli
 
 GODEP_GOPATH=$ROOT_DIR/Godeps/_workspace
 
