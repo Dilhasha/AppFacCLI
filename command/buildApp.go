@@ -7,7 +7,7 @@ import (
 	"strings"
 	"net/http"
 	"encoding/json"
-	"github.com/appfac/cli/formats"
+	"github.com/Dilhasha/AppFacCLI/cli/formats"
 )
 
 type Build struct {
