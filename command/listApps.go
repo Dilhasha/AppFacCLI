@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"encoding/json"
-	"github.com/appfac/cli/formats"
+	"github.com/Dilhasha/AppFacCLI/cli/formats"
 )
 
 type AppList struct {
