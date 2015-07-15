@@ -3,7 +3,7 @@ language: go
 go:
   - 1.3
   
-script: go build ./bin/build-all
+script: go build ./execute/build-all
 
 deploy:
   skip_cleanup: true
