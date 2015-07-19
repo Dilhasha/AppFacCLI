@@ -4,10 +4,25 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
+	"errors"
 )
 
 type concreteFactory struct {
 	CmdsByName map[string]Command
+}
+
+func (f concreteFactory) GetByCmdName(cmdName string) (cmd Command, err error) {
+	cmd, found := f.CmdsByName[cmdName]
+	if !found {
+		for _, c := range f.CmdsByName {
+			if c.Metadata().ShortName == cmdName {
+				return c, nil
+			}
+		}
+
+		err = errors.New(T("Command not found"))
+	}
+	return
 }
 
 func NewFactory() (factory concreteFactory) {
@@ -40,3 +55,19 @@ func (c CommandConfigs) Run() (*http.Response){
 
 	return resp
 }
+
+func (f concreteFactory) GetCommandFlags(command string) []string {
+	cmd, err := f.GetByCmdName(command)
+
+	if err != nil {
+		return []string{}
+	}
+
+	var flags []string
+	for _, flag := range cmd.Metadata().Flags {
+		flags = append(flags, flag.Name)
+	}
+
+	return flags
+}
+
