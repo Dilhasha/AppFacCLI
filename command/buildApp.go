@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"encoding/json"
 	"github.com/Dilhasha/AppFacCLI/cli/formats"
+	"github.com/codegangsta/cli"
 )
 
 type Build struct {
@@ -24,6 +25,15 @@ func (build Build)Metadata() CommandMetadata{
 		Description : "Trigger a build for a given app",
 		ShortName : "b",
 		Usage:"build",
+		SkipFlagParsing:false,
+		Flags: []cli.Flag{
+			cli.StringFlag{Name: "u", Usage: "userName"},
+			cli.StringFlag{Name: "s", Usage: "stageName"},
+			cli.StringFlag{Name: "d", Usage: "deployAction"},
+			cli.StringFlag{Name: "a", Usage: "applicationKey"},
+			cli.StringFlag{Name: "c", Usage: "cookie"},
+			cli.StringFlag{Name: "t", Usage: "tagName"},
+		},
 	}
 
 }
@@ -59,26 +69,15 @@ func (build Build)Configs(reqs CommandRequirements)(configs CommandConfigs){
 	}
 }
 
-func (build Build) Requirements()(reqs CommandRequirements){
-	var appKey,stage,version,tagName,deployAction,cookie string
-	fmt.Println("Cookie:")
-	fmt.Scanf("%s", &cookie)
-	fmt.Println("Application key:")
-	fmt.Scanf("%s", &appKey)
-	fmt.Println("stage:")
-	fmt.Scanf("%s", &stage)
-	fmt.Println("version:")
-	fmt.Scanf("%s", &version)
-	fmt.Println("Tag name:")
-	fmt.Scanf("%s", &tagName)
-	fmt.Println("deploy action:")
-	fmt.Scanf("%s", &deployAction)
-	reqs.Cookie=cookie
-	reqs.ApplicationKey=appKey
-	reqs.DeployAction=deployAction
-	reqs.Stage=stage
-	reqs.TagName=tagName
-	reqs.Version=version
+func (build Build) Requirements(args []string)(reqs CommandRequirements){
+	if(!build.Metadata().SkipFlagParsing){
+		reqs.Cookie=args[0]
+		reqs.ApplicationKey=args[1]
+		reqs.DeployAction=args[2]
+		reqs.Stage=args[3]
+		reqs.TagName=args[4]
+		reqs.Version=args[5]
+	}
 	return
 }
 func(build Build) Run(c CommandConfigs) {

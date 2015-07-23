@@ -1,8 +1,8 @@
 package command
 
 import (
+	"fmt"
 	"bytes"
-	"github.com/codegangsta/cli"
 )
 
 type VersionsList struct {
@@ -19,13 +19,6 @@ func (versionsList VersionsList)Metadata() CommandMetadata{
 		Description : "Lists versions of an application in a stage",
 		ShortName : "lv",
 		Usage:"list versions",
-		SkipFlagParsing:false,
-		Flags: []cli.Flag{
-			cli.StringFlag{Name: "u", Usage: "userName"},
-			cli.StringFlag{Name: "s", Usage: "stageName"},
-			cli.StringFlag{Name: "a", Usage: "applicationKey"},
-			cli.StringFlag{Name: "c", Usage: "cookie"},
-		},
 	}
 }
 
@@ -53,15 +46,19 @@ func (versionsList VersionsList)Configs(reqs CommandRequirements)(configs Comman
 	}
 }
 
-func (versionsList VersionsList) Requirements(args []string)(reqs CommandRequirements){
-	if(!versionsList.Metadata().SkipFlagParsing){
-		reqs.Cookie=args[0]
-		reqs.UserName=args[1]
-		reqs.Stage=args[2]
-		reqs.ApplicationKey=args[3]
-	}
+func (versionsList VersionsList) Requirements()(reqs CommandRequirements){
+	var username,cookie,stageName,appKey string
+	fmt.Println("Cookie:")
+	fmt.Scanf("%s", &cookie)
+	fmt.Println("User Name:")
+	fmt.Scanf("%s", &username)
+	fmt.Println("Stage Name:")
+	fmt.Scanf("%s", &stageName)
+	fmt.Println("Application Key:")
+	fmt.Scanf("%s", &appKey)
+	reqs.Cookie=cookie
+	reqs.UserName=username
+	reqs.Stage=stageName
+	reqs.ApplicationKey=appKey
 	return
-}
-func(versionsList VersionsList) Run(c CommandConfigs){
-
 }

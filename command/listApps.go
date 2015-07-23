@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"encoding/json"
 	"github.com/Dilhasha/AppFacCLI/cli/formats"
+	"github.com/codegangsta/cli"
 )
 
 type AppList struct {
@@ -23,6 +24,11 @@ func (applist AppList)Metadata() CommandMetadata{
 		Description : "Lists applications of a user",
 		ShortName : "la",
 		Usage:"list apps",
+		SkipFlagParsing:false,
+		Flags: []cli.Flag{
+			cli.StringFlag{Name: "u", Usage: "userName"},
+			cli.StringFlag{Name: "c", Usage: "cookie"},
+		},
 	}
 
 }
@@ -43,14 +49,11 @@ func (applist AppList)Configs(reqs CommandRequirements)(configs CommandConfigs){
 	}
 }
 
-func (applist AppList) Requirements()(reqs CommandRequirements){
-	var username,cookie string
-	fmt.Println("Cookie:")
-	fmt.Scanf("%s", &cookie)
-	fmt.Println("UserName:")
-	fmt.Scanf("%s", &username)
-	reqs.Cookie=cookie
-	reqs.UserName=username
+func (applist AppList) Requirements(args []string)(reqs CommandRequirements){
+	if(!applist.Metadata().SkipFlagParsing){
+		reqs.Cookie=args[0]
+		reqs.UserName=args[1]
+	}
 	return
 }
 

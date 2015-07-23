@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
-	"errors"
-	"github.com/codegangsta/cli"
 )
 
 type concreteFactory struct {
@@ -21,7 +19,7 @@ func (f concreteFactory) GetByCmdName(cmdName string) (cmd Command, err error) {
 			}
 		}
 
-		err = errors.New("Command not found")
+		err = errors.New(T("Command not found"))
 	}
 	return
 }
@@ -34,19 +32,6 @@ func NewFactory() (factory concreteFactory) {
 	factory.CmdsByName["listApps"]=NewAppList()
 	factory.CmdsByName["listVersions"]=NewVersionsList()
 	return
-}
-
-func (f concreteFactory) GetCommandFlags(cmd Command) []string {
-	var flags []string
-	for _, flag := range cmd.Metadata().Flags {
-		switch t := flag.(type) {
-		default:
-		case cli.StringFlag:
-			flags = append(flags, t.Name)
-		}
-	}
-
-	return flags
 }
 
 func (c CommandConfigs) Run() (*http.Response){
@@ -70,5 +55,18 @@ func (c CommandConfigs) Run() (*http.Response){
 	return resp
 }
 
+func (f concreteFactory) GetCommandFlags(command string) []string {
+	cmd, err := f.GetByCmdName(command)
 
+	if err != nil {
+		return []string{}
+	}
+
+	var flags []string
+	for _, flag := range cmd.Metadata().Flags {
+		flags = append(flags, flag.Name)
+	}
+
+	return flags
+}
 

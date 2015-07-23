@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"io/ioutil"
 	"net/http"
+	"github.com/codegangsta/cli"
 
 )
 //Unix specific
@@ -41,6 +42,11 @@ func (login Login)Metadata() CommandMetadata{
 		Description : "Login to app factory",
 		ShortName : "l",
 		Usage:"login",
+		SkipFlagParsing:true,
+		Flags: []cli.Flag{
+			cli.StringFlag{Name:"u",Usage:"userName"},
+			cli.StringFlag{Name: "p", Usage: "password"},
+		},
 	}
 }
 
@@ -65,16 +71,21 @@ func (login Login)Configs(reqs CommandRequirements)(configs CommandConfigs){
 	}
 }
 
-func (login Login) Requirements()(reqs CommandRequirements){
-	var username string
-	fmt.Println("username: ")
-	fmt.Scanf("%s", &username)
-	//fmt.Println("password:")
-	//fmt.Scanf("%s", &password)
-	reqs.UserName=username
-	reqs.Password=login.AskForPassword("Password")
-	//reqs.Password=password
-	reqs.Cookie=""
+func (login Login) Requirements(args []string)(reqs CommandRequirements){
+	if(login.Metadata().SkipFlagParsing) {
+		var username string
+		fmt.Println("username: ")
+		fmt.Scanf("%s", &username)
+		//fmt.Println("password:")
+		//fmt.Scanf("%s", &password)
+		reqs.UserName = username
+		reqs.Password = login.AskForPassword("Password")
+		//reqs.Password=password
+	}else{
+		reqs.UserName=args[0]
+		reqs.Password=args[1]
+	}
+	reqs.Cookie = ""
 	return
 }
 
