@@ -4,6 +4,9 @@ import (
 	"os"
 	"github.com/Dilhasha/AppFacCLI/cli/command"
 	"github.com/codegangsta/cli"
+	"strings"
+	"strconv"
+	"fmt"
 )
 
 func main() {
@@ -23,10 +26,12 @@ func main() {
 		app.Run(os.Args)
 	}else if _, ok := cmdFactory.CmdsByName[os.Args[1]]; ok {
 		c := cmdFactory.CmdsByName[os.Args[1]]
-		//requirements:=c.Requirements()
-		//configs:=c.Configs(requirements)
-		configs := c.Configs(c.Metadata().Flags)
+		requirements:=c.Requirements(os.Args[2:])
+		configs:=c.Configs(requirements)
+		//configs := c.Configs(c.Metadata().Flags)
 		c.Run(configs);
+	}else{
+		println("Command doe not exist")
 	}
 
 }
@@ -79,15 +84,13 @@ for _, arg := range args {
 }
 
 	if multipleFlagErr && badFlag != "" {
-		badFlag = fmt.Sprintf("%s %s", T("Unknown flags:"), badFlag)
+		badFlag = fmt.Sprintf("%s %s", "Unknown flags:", badFlag)
 	} else if badFlag != "" {
-		badFlag = fmt.Sprintf("%s %s", T("Unknown flag"), badFlag)
+		badFlag = fmt.Sprintf("%s %s", "Unknown flag", badFlag)
 	}
 
 	return badFlag
 }
-
-
 
 
 
