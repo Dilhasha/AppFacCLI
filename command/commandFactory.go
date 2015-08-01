@@ -33,6 +33,7 @@ func NewFactory() (factory concreteFactory) {
 	factory.CmdsByName["triggerBuild"]=NewBuild()
 	factory.CmdsByName["listApps"]=NewAppList()
 	factory.CmdsByName["listVersions"]=NewVersionsList()
+	factory.CmdsByName["createApp"]=NewAppCreation()
 	return
 }
 
@@ -48,6 +49,35 @@ func (f concreteFactory) GetCommandFlags(cmd Command) []string {
 
 	return flags
 }
+
+
+func (f concreteFactory) GetCommandConfigs(cmd Command,flagVals []string) CommandConfigs {
+	var buffer bytes.Buffer
+	flags:=cmd.Metadata().Flags
+	var cookie string
+	buffer.WriteString("action="+cmd.Metadata().Name)
+
+	for n := 0; n < len(flags); n++ {
+
+		if flag, ok := flags[n].(cli.StringFlag); ok {
+			if(flag.Usage=="cookie"){
+				cookie=flagVals[n]
+			}else{
+				buffer.WriteString("&"+flag.Usage+"=")
+				buffer.WriteString(flagVals[n])
+			}
+		}
+
+
+	}
+	s := buffer.String()
+	return CommandConfigs{
+		Url:cmd.Metadata().Url,
+		Query:s,
+		Cookie:cookie,
+	}
+}
+
 
 func (c CommandConfigs) Run() (*http.Response){
 	fmt.Println("URL:>", c.Url)

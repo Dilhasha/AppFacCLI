@@ -1,7 +1,11 @@
 package command
 
 import (
-	"bytes"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"encoding/json"
+	"github.com/Dilhasha/AppFacCLI/cli/formats"
 	"github.com/codegangsta/cli"
 )
 
@@ -15,53 +19,60 @@ func NewVersionsList() (cmd VersionsList) {
 
 func (versionsList VersionsList)Metadata() CommandMetadata{
 	return CommandMetadata{
-		Name:"VersionsList",
+		Name:"getAppVersionsInStage",
 		Description : "Lists versions of an application in a stage",
 		ShortName : "lv",
 		Usage:"list versions",
 		SkipFlagParsing:false,
+		Url:"https://apps.cloud.wso2.com/appmgt/site/blocks/application/get/ajax/list.jag",
 		Flags: []cli.Flag{
-			cli.StringFlag{Name: "u", Usage: "userName"},
-			cli.StringFlag{Name: "s", Usage: "stageName"},
-			cli.StringFlag{Name: "a", Usage: "applicationKey"},
-			cli.StringFlag{Name: "c", Usage: "cookie"},
+			cli.StringFlag{Name: "-u", Usage: "userName"},
+			cli.StringFlag{Name: "-s", Usage: "stageName"},
+			cli.StringFlag{Name: "-a", Usage: "applicationKey"},
+			cli.StringFlag{Name: "-c", Usage: "cookie"},
 		},
 	}
 }
 
-func (versionsList VersionsList)Configs(reqs CommandRequirements)(configs CommandConfigs){
 
-	var buffer bytes.Buffer
-	buffer.WriteString("action=getAppVersionsInStage")
-
-	if(reqs.UserName!=""){
-		buffer.WriteString("&userName=")
-		buffer.WriteString(reqs.UserName)
-	}
-	if(reqs.Stage!=""){
-		buffer.WriteString("&stageName=")
-		buffer.WriteString(reqs.Stage)
-	}
-	if(reqs.ApplicationKey!=""){
-		buffer.WriteString("&applicationKey=")
-		buffer.WriteString(reqs.ApplicationKey)
-	}
-	return CommandConfigs{
-		Url:"https://apps.cloud.wso2.com//appmgt/site/blocks/application/get/ajax/list.jag",
-		Query:buffer.String(),
-		Cookie:reqs.Cookie,
-	}
-}
-
-func (versionsList VersionsList) Requirements(args []string)(reqs CommandRequirements){
-	if(!versionsList.Metadata().SkipFlagParsing){
-		reqs.Cookie=args[0]
-		reqs.UserName=args[1]
-		reqs.Stage=args[2]
-		reqs.ApplicationKey=args[3]
-	}
-	return
-}
 func(versionsList VersionsList) Run(c CommandConfigs){
+	var resp *http.Response
+	var bodyStr string
+	resp = c.Run()
+	defer resp.Body.Close()
+	body, _ := ioutil.ReadAll(resp.Body)
 
+	if (resp.Status == "200 OK") {
+
+		bodyStr = string(body)
+		var errorFormat formats.ErrorFormat
+		err := json.Unmarshal([]byte(bodyStr), &errorFormat)
+
+		if (err == nil) {
+			//<TODO> Make these error checking functionality common
+			if (errorFormat.ErrorCode == http.StatusUnauthorized) {
+				fmt.Println("Your session has expired.Please login and try again!")
+			}
+		}else{
+			var appVersions []formats.AppVersionFormat
+			err := json.Unmarshal([]byte(bodyStr), &appVersions)
+			if(err ==nil){
+				fmt.Println("Application has ", len(appVersions[0].Versions)," versions. Details of versions are as follows.\n")
+				for _, appVersion := range appVersions {
+					versions:=appVersion.Versions
+					for _, version := range versions{
+						fmt.Println("Version:\t"+version.Version)
+						fmt.Println("------------------------------------------")
+						fmt.Println("autoDeploy:\t"+version.AutoDeployment)
+						fmt.Println("stage:\t"+version.Stage)
+						fmt.Println("isAutoBuild:\t"+version.IsAutoBuild)
+						fmt.Println("isAutoDeploy:\t"+version.IsAutoDeploy)
+						fmt.Println("repoURL:\t"+version.RepoURL+"\n")
+					}
+
+				}
+			}
+
+		}
+	}
 }

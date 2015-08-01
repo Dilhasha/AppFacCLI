@@ -2,7 +2,6 @@ package command
 
 import (
 	"fmt"
-	"bytes"
 	"io/ioutil"
 	"net/http"
 	"encoding/json"
@@ -20,42 +19,20 @@ func NewAppList() (cmd AppList) {
 
 func (applist AppList)Metadata() CommandMetadata{
 	return CommandMetadata{
-		Name:"AppList",
+		Name:"getApplicationsOfUser",
 		Description : "Lists applications of a user",
 		ShortName : "la",
 		Usage:"list apps",
+		Url:"https://apps.cloud.wso2.com/appmgt/site/blocks/application/get/ajax/list.jag",
 		SkipFlagParsing:false,
 		Flags: []cli.Flag{
-			cli.StringFlag{Name: "u", Usage: "userName"},
-			cli.StringFlag{Name: "c", Usage: "cookie"},
+			cli.StringFlag{Name: "-u", Usage: "userName"},
+			cli.StringFlag{Name: "-c", Usage: "cookie"},
 		},
 	}
 
 }
 
-func (applist AppList)Configs(reqs CommandRequirements)(configs CommandConfigs){
-
-	var buffer bytes.Buffer
-	buffer.WriteString("action=getApplicationsOfUser")
-
-	if(reqs.UserName!=""){
-		buffer.WriteString("&userName=")
-		buffer.WriteString(reqs.UserName)
-	}
-	return CommandConfigs{
-		Url:"https://apps.cloud.wso2.com/appmgt/site/blocks/application/get/ajax/list.jag",
-		Query:buffer.String(),
-		Cookie:reqs.Cookie,
-	}
-}
-
-func (applist AppList) Requirements(args []string)(reqs CommandRequirements){
-	if(!applist.Metadata().SkipFlagParsing){
-		reqs.Cookie=args[0]
-		reqs.UserName=args[1]
-	}
-	return
-}
 
 func(applist AppList) Run(c CommandConfigs){
 	var resp *http.Response
@@ -65,6 +42,7 @@ func(applist AppList) Run(c CommandConfigs){
 	body, _ := ioutil.ReadAll(resp.Body)
 	if (resp.Status == "200 OK") {
 		bodyStr = string(body)
+		fmt.Println(bodyStr)
 		var errorFormat formats.ErrorFormat
 		err := json.Unmarshal([]byte(bodyStr), &errorFormat)
 		if (err == nil) {
@@ -76,9 +54,27 @@ func(applist AppList) Run(c CommandConfigs){
 			var apps []formats.AppFormat
 			err := json.Unmarshal([]byte(bodyStr), &apps)
 			if(err ==nil){
-				fmt.Println("You have ", len(apps)," applications")
-
+				fmt.Println("You have ", len(apps)," applications. Details of applications are as follows.\n")
+				for _, app := range apps {
+					fmt.Println("Name:\t"+app.Name)
+					fmt.Println("------------------------------------------")
+					fmt.Println("Key:\t"+app.Key)
+					fmt.Println("Type:\t"+app.Type)
+					fmt.Println("Description:\t"+app.Description)
+					fmt.Print("Users:\t")
+					for i:=0;i<len(app.Users);i++ {
+						fmt.Print(app.Users[i].UserName)
+						if(i!=len(app.Users)-1){
+							fmt.Print(",")
+						}else{
+							fmt.Println()
+						}
+					}
+					fmt.Print("InProduction:\t%t\n",app.InProduction)
+				}
 			}
+
+
 
 		}
 	}
