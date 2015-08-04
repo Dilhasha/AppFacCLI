@@ -40,7 +40,7 @@ func (build Build)Metadata() CommandMetadata{
 
 
 
-func(build Build) Run(c CommandConfigs) {
+func(build Build) Run(c CommandConfigs) (bool,string){
 	var resp *http.Response
 	var bodyStr string
 	resp = c.Run()
@@ -60,6 +60,7 @@ func(build Build) Run(c CommandConfigs) {
 			}
 		}
 	}
+	return true,c.Cookie
 }
 
 

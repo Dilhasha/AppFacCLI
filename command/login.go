@@ -9,7 +9,6 @@ import (
 
 )
 
-
 type Login struct {
 	//to be added
 }
@@ -35,22 +34,24 @@ func (login Login)Metadata() CommandMetadata{
 
 
 
-func(login Login) Run(c CommandConfigs){
+func(login Login) Run(c CommandConfigs)(bool,string){
 	var resp *http.Response
 	var bodyStr string
 	resp=c.Run()
 	defer resp.Body.Close()
+
 	if(resp.Status=="200 OK"){
 		body, _ := ioutil.ReadAll(resp.Body)
 		bodyStr=string(body)
 		if(strings.Contains(bodyStr, "true")){
 			fmt.Println("You have Successfully logged in.")
 			cookie:=strings.Split(resp.Header.Get("Set-Cookie"),";")
+			c.Cookie=cookie[0]
 			fmt.Println("Cookie for the session is:",cookie[0])
 		}else{
 			fmt.Println("Authorization failed. Please try again!")
 		}
 	}
-
+	return true,c.Cookie
 }
 

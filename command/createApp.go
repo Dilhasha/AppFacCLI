@@ -35,10 +35,10 @@ func (appCreation AppCreation)Metadata() CommandMetadata{
 			cli.StringFlag{Name: "-r", Usage: "repositoryType"},
 		},
 	}
-
+	
 }
 
-func(appCreation AppCreation) Run(c CommandConfigs){
+func(appCreation AppCreation) Run(c CommandConfigs) (bool,string){
 	var resp *http.Response
 	var bodyStr string
 	resp = c.Run()
@@ -61,4 +61,5 @@ func(appCreation AppCreation) Run(c CommandConfigs){
 			fmt.Println(successMessage.Message)
 		}
 	}
+	return true,c.Cookie
 }

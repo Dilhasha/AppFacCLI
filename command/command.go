@@ -3,7 +3,7 @@ package command
 
 type Command interface {
 	Metadata() CommandMetadata
-	Run(c CommandConfigs)
+	Run(c CommandConfigs) (bool,string)
 }
 
 

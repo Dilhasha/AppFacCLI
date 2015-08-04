@@ -35,7 +35,7 @@ func (versionsList VersionsList)Metadata() CommandMetadata{
 }
 
 
-func(versionsList VersionsList) Run(c CommandConfigs){
+func(versionsList VersionsList) Run(c CommandConfigs)(bool,string){
 	var resp *http.Response
 	var bodyStr string
 	resp = c.Run()
@@ -61,13 +61,13 @@ func(versionsList VersionsList) Run(c CommandConfigs){
 				for _, appVersion := range appVersions {
 					versions:=appVersion.Versions
 					for _, version := range versions{
-						fmt.Println("Version:\t"+version.Version)
+						fmt.Println("\nVersion:\t"+version.Version)
 						fmt.Println("------------------------------------------")
 						fmt.Println("autoDeploy:\t"+version.AutoDeployment)
 						fmt.Println("stage:\t"+version.Stage)
 						fmt.Println("isAutoBuild:\t"+version.IsAutoBuild)
 						fmt.Println("isAutoDeploy:\t"+version.IsAutoDeploy)
-						fmt.Println("repoURL:\t"+version.RepoURL+"\n")
+						fmt.Println("repoURL:\t"+version.RepoURL)
 					}
 
 				}
@@ -75,4 +75,5 @@ func(versionsList VersionsList) Run(c CommandConfigs){
 
 		}
 	}
+	return true,c.Cookie
 }

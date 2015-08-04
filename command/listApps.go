@@ -34,7 +34,7 @@ func (applist AppList)Metadata() CommandMetadata{
 }
 
 
-func(applist AppList) Run(c CommandConfigs){
+func(applist AppList) Run(c CommandConfigs)(bool,string){
 	var resp *http.Response
 	var bodyStr string
 	resp = c.Run()
@@ -42,7 +42,6 @@ func(applist AppList) Run(c CommandConfigs){
 	body, _ := ioutil.ReadAll(resp.Body)
 	if (resp.Status == "200 OK") {
 		bodyStr = string(body)
-		fmt.Println(bodyStr)
 		var errorFormat formats.ErrorFormat
 		err := json.Unmarshal([]byte(bodyStr), &errorFormat)
 		if (err == nil) {
@@ -56,7 +55,7 @@ func(applist AppList) Run(c CommandConfigs){
 			if(err ==nil){
 				fmt.Println("You have ", len(apps)," applications. Details of applications are as follows.\n")
 				for _, app := range apps {
-					fmt.Println("Name:\t"+app.Name)
+					fmt.Println("\nName:\t"+app.Name)
 					fmt.Println("------------------------------------------")
 					fmt.Println("Key:\t"+app.Key)
 					fmt.Println("Type:\t"+app.Type)
@@ -70,7 +69,7 @@ func(applist AppList) Run(c CommandConfigs){
 							fmt.Println()
 						}
 					}
-					fmt.Print("InProduction:\t%t\n",app.InProduction)
+					fmt.Print("InProduction:\t",app.InProduction)
 				}
 			}
 
@@ -78,4 +77,5 @@ func(applist AppList) Run(c CommandConfigs){
 
 		}
 	}
+	return true,c.Cookie
 }
