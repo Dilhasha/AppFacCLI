@@ -34,6 +34,7 @@ func NewFactory() (factory concreteFactory) {
 	factory.CmdsByName["listApps"]=NewAppList()
 	factory.CmdsByName["listVersions"]=NewVersionsList()
 	factory.CmdsByName["createApp"]=NewAppCreation()
+	factory.CmdsByName["exit"]=NewExit()
 	return
 }
 
