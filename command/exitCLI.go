@@ -26,7 +26,7 @@ func (exit exitCLI)Metadata() CommandMetadata{
 
 }
 
-func(exit exitCLI) Run(c CommandConfigs)bool{
+func(exit exitCLI) Run(c CommandConfigs)(bool,string){
 	fmt.Println("Exiting Appfac CLI..")
-	return false
+	return false,c.Cookie
 }
