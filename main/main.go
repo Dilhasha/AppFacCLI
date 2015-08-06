@@ -8,6 +8,7 @@ import (
 	"github.com/Dilhasha/AppFacCLI/cli/session"
 	"fmt"
 	"strings"
+	"bufio"
 )
 
 type Requirement struct {
@@ -24,43 +25,52 @@ func main() {
 	cmdFactory := command.NewFactory()
 	var continueFlag bool=true
 	var sessionObj session.Session =session.NewSession()
-	var str string//store arguments temporarily
+	var flagVals []string
+	var args[] string
 
 	//command `appfac` without argument
 	if len(os.Args) == 1 || os.Args[1] == "help" || os.Args[1] == "h" {
 		println("Showing help commands")
 		app.Run(os.Args)
 	}else if _, ok := cmdFactory.CmdsByName[os.Args[1]]; ok {
+		args=os.Args[1:]
+		reader := bufio.NewReader(os.Stdin)
 		for (continueFlag) {
+			println("on top",args[0])
 			if(sessionObj.UserName==""){
-				if(os.Args[1]!="login"){
+				if(args[0]!="login"){
 					println("You must be logged in to continue.")
 				}
 				c := cmdFactory.CmdsByName["login"]
 				cmdFlags := cmdFactory.GetCommandFlags(c)
-				flagVals := getRequirements(c, cmdFlags,sessionObj)
+				flagVals= getRequirements(c, cmdFlags,sessionObj,args)
 				//set session obj username
 				sessionObj=setSession(cmdFlags,flagVals)
 
 				configs := cmdFactory.GetCommandConfigs(c, flagVals)
 				continueFlag,sessionObj.Cookie = c.Run(configs)
 			}else{
-				c := cmdFactory.CmdsByName[os.Args[1]]
+				println("command:"+args[0])
+				c := cmdFactory.CmdsByName[args[0]]
 				cmdFlags := cmdFactory.GetCommandFlags(c)
-				flagVals := getRequirements(c, cmdFlags,sessionObj)
+				flagVals= getRequirements(c, cmdFlags,sessionObj,args)
 				configs := cmdFactory.GetCommandConfigs(c, flagVals)
-				continueFlag,_ = c.Run(configs)
+				continueFlag,sessionObj.Cookie = c.Run(configs)
 			}
 			print("appfac > ")
-			fmt.Scanf("%s", &str)
-			os.Args=strings.Split(str," ")
+			str, _ := reader.ReadString('\n')
+			args=strings.Fields(str)
+			println("string has :",len(args))
+			for i:=0;i<len(args);i++{
+				println(args[i])
+			}
 		}
 	}else{
 		println("Command does not exist")
 	}
 
 }
-func getRequirements(c command.Command,cmdFlags []string,sessionObj session.Session)([]string){
+func getRequirements(c command.Command,cmdFlags []string,sessionObj session.Session,args []string)([]string){
 	var i=0
 	if(c.Metadata().SkipFlagParsing){
 		flags:=c.Metadata().Flags
@@ -70,6 +80,7 @@ func getRequirements(c command.Command,cmdFlags []string,sessionObj session.Sess
 				if (flag.Usage != "password") {
 					print(flag.Usage + " > ")
 					fmt.Scanf("%s", &reqs[i])
+					sessionObj.UserName=reqs[i]
 					i++
 				}else {
 					reqs[i] = password.AskForPassword("Password")
@@ -79,7 +90,7 @@ func getRequirements(c command.Command,cmdFlags []string,sessionObj session.Sess
 		}
 		return reqs
 	}else{
-		isMatch,flagVals:=matchArgAndFlags(cmdFlags,os.Args[2:],sessionObj)
+		isMatch,flagVals:=matchArgAndFlags(cmdFlags,args[1:],sessionObj)
 		
 		if(isMatch){
 			return flagVals
@@ -124,9 +135,9 @@ func checkIfArgsContainsFlag(flag string, args []string) (bool,int){
 }
 
 func checkIfInSession(flag string,sessionObj session.Session)(bool,string){
-	if(flag=="userName"){
+	if(flag=="-u"){
 		return true, sessionObj.UserName
-	}else if(flag=="cookie"){
+	}else if(flag=="-c"){
 		return true, sessionObj.Cookie
 	}
 	return false, ""
@@ -134,7 +145,9 @@ func checkIfInSession(flag string,sessionObj session.Session)(bool,string){
 
 func setSession(flags []string, flagVals []string)(session.Session){
 	for n := 0; n < len(flags); n++ {
-		if(flags[n]=="userName"){
+		if(flags[n]=="-u"){
+			println(flags[n])
+			println(flagVals[n])
 			return session.Session{flagVals[n], ""}
 		}
 
