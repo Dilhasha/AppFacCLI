@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"github.com/Dilhasha/AppFacCLI/cli/formats"
 	"github.com/codegangsta/cli"
+	tm "github.com/buger/goterm"
 )
 
 type AppList struct {
@@ -54,23 +55,14 @@ func(applist AppList) Run(c CommandConfigs)(bool,string){
 			err := json.Unmarshal([]byte(bodyStr), &apps)
 			if(err ==nil){
 				fmt.Println("You have ", len(apps)," applications. Details of applications are as follows.\n")
+				totals := tm.NewTable(0, 10, 5, ' ', 0)
+				fmt.Fprintf(totals, "Name\tKey\tType\tDescription\n")
+				fmt.Fprintf(totals, "----\t---\t----\t-----------\n")
 				for _, app := range apps {
-					fmt.Println("\nName:\t"+app.Name)
-					fmt.Println("------------------------------------------")
-					fmt.Println("Key:\t"+app.Key)
-					fmt.Println("Type:\t"+app.Type)
-					fmt.Println("Description:\t"+app.Description)
-					fmt.Print("Users:\t")
-					for i:=0;i<len(app.Users);i++ {
-						fmt.Print(app.Users[i].UserName)
-						if(i!=len(app.Users)-1){
-							fmt.Print(",")
-						}else{
-							fmt.Println()
-						}
-					}
-					fmt.Print("InProduction:\t",app.InProduction)
+					fmt.Fprintf(totals, "%s\t%s\t%s\t%s\n", app.Name,app.Key,app.Type,app.Description)
 				}
+				tm.Println(totals)
+				tm.Flush()
 			}
 
 

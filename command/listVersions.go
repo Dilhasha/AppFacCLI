@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"github.com/Dilhasha/AppFacCLI/cli/formats"
 	"github.com/codegangsta/cli"
+	tm "github.com/buger/goterm"
 )
 
 type VersionsList struct {
@@ -60,16 +61,15 @@ func(versionsList VersionsList) Run(c CommandConfigs)(bool,string){
 				fmt.Println("Application has ", len(appVersions[0].Versions)," versions. Details of versions are as follows.\n")
 				for _, appVersion := range appVersions {
 					versions:=appVersion.Versions
-					for _, version := range versions{
-						fmt.Println("\nVersion:\t"+version.Version)
-						fmt.Println("------------------------------------------")
-						fmt.Println("autoDeploy:\t"+version.AutoDeployment)
-						fmt.Println("stage:\t"+version.Stage)
-						fmt.Println("isAutoBuild:\t"+version.IsAutoBuild)
-						fmt.Println("isAutoDeploy:\t"+version.IsAutoDeploy)
-						fmt.Println("repoURL:\t"+version.RepoURL)
-					}
+					totals := tm.NewTable(0, 10, 5, ' ', 0)
+					fmt.Fprintf(totals, "Version\tAutoDeploy\tStage\tRepoURL\n")
+					fmt.Fprintf(totals, "-------\t---------\t-----\t-----------\n")
 
+					for _, version := range versions{
+						fmt.Fprintf(totals, "%s\t%s\t%s\t%s\n", version.Version,version.AutoDeployment,version.Stage,version.RepoURL)
+					}
+					tm.Println(totals)
+					tm.Flush()
 				}
 			}
 
