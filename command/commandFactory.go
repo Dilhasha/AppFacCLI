@@ -2,7 +2,6 @@ package command
 
 import (
 	"bytes"
-	"fmt"
 	"net/http"
 	"errors"
 	"github.com/codegangsta/cli"
@@ -35,6 +34,7 @@ func NewFactory() (factory concreteFactory) {
 	factory.CmdsByName["listVersions"]=NewVersionsList()
 	factory.CmdsByName["createApp"]=NewAppCreation()
 	factory.CmdsByName["exit"]=NewExit()
+	factory.CmdsByName["getAppInfo"]=NewAppInfo()
 	return
 }
 
@@ -81,7 +81,6 @@ func (f concreteFactory) GetCommandConfigs(cmd Command,flagVals []string) Comman
 
 
 func (c CommandConfigs) Run() (*http.Response){
-	fmt.Println("URL:>", c.Url)
 	var jsonStr = []byte(c.Query)
 	req, err := http.NewRequest("POST", c.Url, bytes.NewBuffer(jsonStr))
 	req.Header.Set("Content-Type","application/x-www-form-urlencoded")
