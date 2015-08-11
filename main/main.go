@@ -7,8 +7,9 @@ import (
 	"github.com/Dilhasha/AppFacCLI/cli/password"
 	"github.com/Dilhasha/AppFacCLI/cli/session"
 	"fmt"
-	"strings"
-	"bufio"
+	"io/ioutil"
+	"io"
+	"encoding/json"
 )
 
 type Requirement struct {
@@ -33,10 +34,60 @@ func main() {
 		println("Showing help commands")
 		app.Run(os.Args)
 	}else if _, ok := cmdFactory.CmdsByName[os.Args[1]]; ok {
-		args=os.Args[1:]
+		filename := "session.txt"
+		if _, err := os.Stat(filename); err == nil {
+			dat, err := ioutil.ReadFile(filename)
+			if err != nil {
+				panic(err)
+			}
+
+			err1 := json.Unmarshal(dat, &sessionObj)
+			if (err1== nil) {
+				c := cmdFactory.CmdsByName[os.Args[1]]
+				cmdFlags := cmdFactory.GetCommandFlags(c)
+				args=os.Args[1:]
+				flagVals = getRequirements(c, cmdFlags, sessionObj, args)
+				configs := cmdFactory.GetCommandConfigs(c, flagVals)
+				continueFlag, sessionObj.Cookie = c.Run(configs)
+				fmt.Print("You can continue:",continueFlag)
+			}else {
+				println("You must be logged in to continue.")
+				err2 := os.Remove(filename)
+				if err2 != nil {
+					fmt.Println(err2)
+				}
+			}
+
+		}else {
+			if(os.Args[1]=="login"){
+				c := cmdFactory.CmdsByName[os.Args[1]]
+				cmdFlags := cmdFactory.GetCommandFlags(c)
+				args=os.Args[1:]
+				flagVals = getRequirements(c, cmdFlags, sessionObj, args)
+				//set session obj username
+				sessionObj = setSession(cmdFlags, flagVals)
+
+				configs := cmdFactory.GetCommandConfigs(c, flagVals)
+				continueFlag, sessionObj.Cookie = c.Run(configs)
+				if(continueFlag){
+					//write to a file
+					success := writeSession(sessionObj, filename)
+					if(success){
+						fmt.Print("Your session details are stored.")
+					}
+				}
+
+			}else{
+				println("You must be logged in to continue.")
+			}
+
+		}
+
+
+
+		/*args=os.Args[1:]
 		reader := bufio.NewReader(os.Stdin)
 		for (continueFlag) {
-			println("on top",args[0])
 			if(sessionObj.UserName==""){
 				if(args[0]!="login"){
 					println("You must be logged in to continue.")
@@ -50,23 +101,22 @@ func main() {
 				configs := cmdFactory.GetCommandConfigs(c, flagVals)
 				continueFlag,sessionObj.Cookie = c.Run(configs)
 			}else{
-				println("command:"+args[0])
 				c := cmdFactory.CmdsByName[args[0]]
 				cmdFlags := cmdFactory.GetCommandFlags(c)
 				flagVals= getRequirements(c, cmdFlags,sessionObj,args)
 				configs := cmdFactory.GetCommandConfigs(c, flagVals)
 				continueFlag,sessionObj.Cookie = c.Run(configs)
 			}
-			print("appfac > ")
+			if(!continueFlag){
+				break
+			}
+			print("\nappfac > ")
 			str, _ := reader.ReadString('\n')
 			args=strings.Fields(str)
-			println("string has :",len(args))
-			for i:=0;i<len(args);i++{
-				println(args[i])
-			}
 		}
 	}else{
 		println("Command does not exist")
+	}*/
 	}
 
 }
@@ -91,7 +141,7 @@ func getRequirements(c command.Command,cmdFlags []string,sessionObj session.Sess
 		return reqs
 	}else{
 		isMatch,flagVals:=matchArgAndFlags(cmdFlags,args[1:],sessionObj)
-		
+
 		if(isMatch){
 			return flagVals
 		}else{
@@ -146,13 +196,33 @@ func checkIfInSession(flag string,sessionObj session.Session)(bool,string){
 func setSession(flags []string, flagVals []string)(session.Session){
 	for n := 0; n < len(flags); n++ {
 		if(flags[n]=="-u"){
-			println(flags[n])
-			println(flagVals[n])
 			return session.Session{flagVals[n], ""}
 		}
 
 	}
 	return session.Session{"",""}
+}
+
+func writeSession(sessionObj session.Session,filename string)bool{
+
+	file, err1 := os.Create(filename)
+	if err1 != nil {
+		fmt.Println(err1)
+		return false
+	}
+	s, err2 := json.Marshal(sessionObj)
+	if err2 != nil {
+		fmt.Println(err2)
+		return false
+	}
+	n, err3 := io.WriteString(file, string(s))
+	if err3!= nil {
+		fmt.Println(n, err3)
+		return false
+	}
+
+	file.Close()
+	return true
 }
 
 
