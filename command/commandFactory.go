@@ -1,104 +1,130 @@
+/*
+ * Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ *   WSO2 Inc. licenses this file to you under the Apache License,
+ *   Version 2.0 (the "License"); you may not use this file except
+ *   in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing,
+ *   software distributed under the License is distributed on an
+ *   "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *   KIND, either express or implied.  See the License for the
+ *   specific language governing permissions and limitations
+ *   under the License.
+ */
 package command
 
 import (
 	"bytes"
-	"net/http"
 	"errors"
 	"github.com/codegangsta/cli"
+	"github.com/Dilhasha/AppFacCLI/cli/urls"
+	"io/ioutil"
+	"os"
+	"encoding/json"
 )
 
-type concreteFactory struct {
+const (
+	//Keyword for starting a query
+	queryStarter = "action"
+	connector = "&"
+	equator = "="
+)
+
+type ConcreteFactory struct {
 	CmdsByName map[string]Command
 }
 
-func (f concreteFactory) GetByCmdName(cmdName string) (cmd Command, err error) {
-	cmd, found := f.CmdsByName[cmdName]
+
+/*GetByCmdName returns command given the command name or short name*/
+func (factory ConcreteFactory) GetByCmdName(cmdName string) (cmd Command, err error) {
+	cmd, found := factory.CmdsByName[cmdName]
 	if !found {
-		for _, c := range f.CmdsByName {
-			if c.Metadata().ShortName == cmdName {
-				return c, nil
+		for _, command := range factory.CmdsByName {
+			if command.Metadata().ShortName == cmdName {
+				return command, nil
 			}
 		}
-
 		err = errors.New("Command not found")
 	}
 	return
 }
 
-func NewFactory() (factory concreteFactory) {
-
+/* NewFactory returns a new concreteFactory with with a map of commands.*/
+func NewFactory() (factory ConcreteFactory) {
+	//Get Urls
+	urls := urls.GetUrls()
+	//Create map of commands
 	factory.CmdsByName = make(map[string]Command)
-	factory.CmdsByName["login"]=NewLogin()
-	factory.CmdsByName["triggerBuild"]=NewBuild()
-	factory.CmdsByName["listApps"]=NewAppList()
-	factory.CmdsByName["listVersions"]=NewVersionsList()
-	factory.CmdsByName["createApp"]=NewAppCreation()
-	factory.CmdsByName["exit"]=NewExit()
-	factory.CmdsByName["getAppInfo"]=NewAppInfo()
+	factory.CmdsByName["login"] = NewLogin(urls.Login)
+	factory.CmdsByName["listApps"] = NewAppList(urls.ListApps)
+	factory.CmdsByName["listVersions"] = NewVersionsList(urls.ListVersions)
+	factory.CmdsByName["createApp"] = NewAppCreation(urls.CreateApp)
+	factory.CmdsByName["exit"] = NewExit(urls.Exit)
+	factory.CmdsByName["getAppInfo"] = NewAppInfo(urls.GetAppInfo)
+	factory.CmdsByName["buildApp"] = NewArtifact(urls.CreateArtifact)
+	factory.CmdsByName["getBuildSuccessInfo"] = NewBuildSuccessInfo(urls.GetBuildSuccessInfo)
+	factory.CmdsByName["printLogs"] = NewPrintLogs(urls.PrintLogs)
 	return
 }
 
-func (f concreteFactory) GetCommandFlags(cmd Command) []string {
+/* GetCommandFlags converts flags into a list of strings.*/
+func (factory ConcreteFactory) GetCommandFlags(command Command) []string {
 	var flags []string
-	for _, flag := range cmd.Metadata().Flags {
-		switch t := flag.(type) {
+	for _, flag := range command.Metadata().Flags {
+		switch flagType := flag.(type) {
 		default:
 		case cli.StringFlag:
-			flags = append(flags, t.Name)
+			flags = append(flags, flagType.Name)
 		}
 	}
-
 	return flags
 }
 
+/* GetCommandConfigs returns a CommandConfigs struct based on flags nd flag values.*/
+func (factory ConcreteFactory) GetCommandConfigs(command Command,flagValues []string) CommandConfigs {
 
-func (f concreteFactory) GetCommandConfigs(cmd Command,flagVals []string) CommandConfigs {
 	var buffer bytes.Buffer
-	flags:=cmd.Metadata().Flags
+	flags:=command.Metadata().Flags
 	var cookie string
-	buffer.WriteString("action="+cmd.Metadata().Name)
+
+	buffer.WriteString(queryStarter + equator + command.Metadata().Name)
 
 	for n := 0; n < len(flags); n++ {
-
+		//If flag is a string flag
 		if flag, ok := flags[n].(cli.StringFlag); ok {
-			if(flag.Usage=="cookie"){
-				cookie=flagVals[n]
+			if(flag.Usage == "cookie"){
+				cookie = flagValues[n]
 			}else{
-				buffer.WriteString("&"+flag.Usage+"=")
-				buffer.WriteString(flagVals[n])
+				buffer.WriteString(connector + flag.Usage + equator)
+				buffer.WriteString(flagValues[n])
 			}
 		}
-
-
 	}
-	s := buffer.String()
+	query := buffer.String()
+
 	return CommandConfigs{
-		Url:cmd.Metadata().Url,
-		Query:s,
+		Url:command.Metadata().Url,
+		Query:query,
 		Cookie:cookie,
 	}
 }
 
-
-func (c CommandConfigs) Run() (*http.Response){
-	var jsonStr = []byte(c.Query)
-	req, err := http.NewRequest("POST", c.Url, bytes.NewBuffer(jsonStr))
-	req.Header.Set("Content-Type","application/x-www-form-urlencoded")
-	req.Header.Set("Cookie", c.Cookie)
-	client := &http.Client{}
-	resp, err := client.Do(req)
-
-	if err != nil {
-		panic(err)
+/*Get url values from file to a Urls object*/
+func getURLs(filename string)(urls.Urls){
+	var urlValues urls.Urls
+	if _ , err := os.Stat(filename); err == nil {
+		data, err := ioutil.ReadFile(filename)
+		if err != nil {
+			panic (err)
+		}
+		err = json.Unmarshal(data , &urlValues)
+		if (err != nil) {
+			panic (err)
+		}
 	}
-
-	/*fmt.Println("response Status:", resp.Status)
-	fmt.Println("response Headers:", resp.Header.Get("Content-Type"))
-	body, _ := ioutil.ReadAll(resp.Body)
-	fmt.Println("response Body:", string(body))*/
-
-	return resp
+	return urlValues
 }
-
-
-

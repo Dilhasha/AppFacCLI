@@ -18,61 +18,53 @@
 package command
 
 import (
-	"fmt"
-	"strings"
 	"io/ioutil"
 	"net/http"
 	"github.com/codegangsta/cli"
-
 )
 
-/* Login is the implementation of the command to log into a user account in app factory */
-type Login struct {
+/* BuildSuccessInfo is the implementation of the command to display the last build success details of an application. */
+
+type BuildSuccessInfo struct {
 	Url string
 }
 
-func NewLogin(url string) (cmd Login) {
-	return Login{
+func NewBuildSuccessInfo(url string) (cmd BuildSuccessInfo) {
+	return BuildSuccessInfo{
 		Url:url,
 	}
 }
 
-/* Returns metadata for login.*/
-func (login Login)Metadata() CommandMetadata{
+/* Returns metadata for build success information.*/
+func (buildSuccessInfo BuildSuccessInfo)Metadata() CommandMetadata{
 	return CommandMetadata{
-		Name:"login",
-		Description : "Login to app factory",
-		ShortName : "l",
-		Usage:"login",
-		Url:login.Url,
-		SkipFlagParsing:true,
+		Name:"getBuildAndDeployStatusForVersion",
+		Description : "get the last build success details of a particular version",
+		ShortName : "si",
+		Usage:"get build success info",
+		Url:buildSuccessInfo.Url,
+		SkipFlagParsing:false,
 		Flags: []cli.Flag{
-			cli.StringFlag{Name:"-u",Usage:"userName"},
-			cli.StringFlag{Name: "-p", Usage: "password"},
+			cli.StringFlag{Name: "-a", Usage: "applicationKey"},
+			cli.StringFlag{Name: "-v", Usage: "version"},
+			cli.StringFlag{Name: "-c", Usage: "cookie"},
 		},
 	}
 }
 
 /* Run calls the Run function of CommandConfigs and verifies the response from that call.*/
-func(login Login) Run(c CommandConfigs)(bool,string){
+func(buildSuccessInfo BuildSuccessInfo) Run(c CommandConfigs)(bool,string){
 	var resp *http.Response
 	var bodyStr string
-	resp=c.Run()
+	resp = c.Run()
 	defer resp.Body.Close()
-
-	if(resp.Status=="200 OK"){
-		body, _ := ioutil.ReadAll(resp.Body)
-		bodyStr=string(body)
+	body, _ := ioutil.ReadAll(resp.Body)
+	if (resp.Status == "200 OK") {
+		bodyStr = string(body)
 		println(bodyStr)
-		if(strings.Contains(bodyStr, "true")){
-			fmt.Println("You have Successfully logged in.")
-			cookie:=strings.Split(resp.Header.Get("Set-Cookie"),";")
-			c.Cookie=cookie[0]
-		}else{
-			fmt.Println("Authorization failed. Please try again!")
-			return false,c.Cookie
-		}
+
+
+
 	}
 	return true,c.Cookie
 }
-
