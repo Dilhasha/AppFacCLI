@@ -63,11 +63,11 @@ func(login Login) Run(c CommandConfigs)(bool,string){
 	if(resp.Status=="200 OK"){
 		body, _ := ioutil.ReadAll(resp.Body)
 		bodyStr=string(body)
-		println(bodyStr)
 		if(strings.Contains(bodyStr, "true")){
 			fmt.Println("You have Successfully logged in.")
 			cookie:=strings.Split(resp.Header.Get("Set-Cookie"),";")
 			c.Cookie=cookie[0]
+
 		}else{
 			fmt.Println("Authorization failed. Please try again!")
 			return false,c.Cookie

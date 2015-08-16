@@ -71,8 +71,9 @@ func(applist AppList) Run(c CommandConfigs)(bool,string){
 		if (err == nil) {
 			//<TODO> Make these error checking functionality common
 			if (errorFormat.ErrorCode == http.StatusUnauthorized) {
-				fmt.Println("Your session has expired.Please login and try again!")
 				println(errorFormat.ErrorMessage)
+				fmt.Println("Your session has expired.Please login and try again!")
+				return false , c.Cookie
 			}
 		}else{
 			var apps []formats.AppFormat

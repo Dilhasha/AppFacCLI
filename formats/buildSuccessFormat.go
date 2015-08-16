@@ -15,19 +15,10 @@
  *   specific language governing permissions and limitations
  *   under the License.
  */
-package command
+package formats
 
-import "github.com/codegangsta/cli"
-
-type CommandMetadata struct {
-	Name            string
-	ShortName       string
-	Usage           string
-	Url				string
-	Description     string
-	Flags           []cli.Flag
-	//<TODO>Help	string
-	// Specifies whether or not to parse values from user arguments
-	SkipFlagParsing bool
+type BuildSuccessFormat struct {
+	BuildId int64 `json:",string"`
+	BuildStatus string
+	DeployedId int64 `json:",string"`
 }
-

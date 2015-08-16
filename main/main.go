@@ -33,6 +33,8 @@ import (
 
 const (
 	loginCommand = "login"
+	//<TODO> move this to cache
+	filename = "session.txt"
 )
 //main handles the flow of the CLI tool.
 func main() {
@@ -50,61 +52,38 @@ func main() {
 	if len(os.Args) == 1 || os.Args[1] == "help" || os.Args[1] == "h" {
 		println("Showing help commands")
 		app.Run(os.Args)
-	}else if _, ok := cmdFactory.CmdsByName[os.Args[1]]; ok {
-		//<TODO> move this to cache
-		filename := "session.txt"
+	}else if command, ok := cmdFactory.CheckIfCommandExists(os.Args[1]); ok {
 
-		//If session file exists
-		if _, err := os.Stat(filename); err == nil {
-			//Read session data
-			data, err := ioutil.ReadFile(filename)
-			if err != nil {
-				panic(err)
-			}
-			//Get session data into a session object
-			err = json.Unmarshal(data, &sessionObject)
+		args = os.Args[1:]
 
-			args = os.Args[1:]
-			if(err == nil){
-				continueFlag, sessionObject.Cookie = runCommand(os.Args[1],args,sessionObject,cmdFactory)
+		if(command != loginCommand) {
+			//If session file exists
+			if _, err := os.Stat(filename); err == nil {
+				//Read session data
+				data, err := ioutil.ReadFile(filename)
+				if err != nil {
+					panic(err)
+				}
+				//Get session data into a session object
+				err = json.Unmarshal(data, &sessionObject)
+				if(err != nil){
+					println("Error occured while getting stored session.")
+				}
+				continueFlag = runCommand(command,args,sessionObject,cmdFactory)
 			}else{
-				println(err)
-				continueFlag = false
+				fmt.Println("You must be logged into continue.")
+				continueFlag = runCommand(loginCommand,args,sessionObject,cmdFactory)
 			}
-
-			if(os.Args[1]==loginCommand && continueFlag){
-				//store the session
-				success := writeSession(sessionObject, filename)
-				if(success){
-					fmt.Println("Your session details are stored.")
-				}else{
-					fmt.Println("Error occured while storing session!")
-				}
-			}else if(!continueFlag){
-				for(!continueFlag){
-					fmt.Println("You must be logged into continue.")
-					continueFlag, sessionObject.Cookie = runCommand(os.Args[1],args,sessionObject,cmdFactory)
-				}
-			}
-
-		}else { //If session file does not exist
-			if(os.Args[1] == loginCommand){
-
-				if(continueFlag){
-					//write session
-					success := writeSession(sessionObject, filename)
-					if(success){
-						fmt.Println("Your session details are stored.")
-					}
-				}
-			}else{
-				for(!continueFlag){
-					fmt.Println("You must be logged into continue.")
-					continueFlag, sessionObject.Cookie = runCommand(os.Args[1],args,sessionObject,cmdFactory)
-				}
-			}
-
+		}else {
+			sessionObject = session.NewSession()
+			continueFlag = runCommand(command,args,sessionObject,cmdFactory)
 		}
+		for(!continueFlag){
+			//fmt.Println("You must be logged into continue.")
+			continueFlag = runCommand(loginCommand,args,sessionObject,cmdFactory)
+		}
+	}else{
+		println("The command you entered does not exist!")
 	}
 
 }
@@ -190,18 +169,27 @@ func checkIfInSession(flag string,sessionObject session.Session)(bool,string){
 	return false, ""
 }
 
-func runCommand(commandName string , args []string, sessionObject session.Session, cmdFactory command.ConcreteFactory)(bool, string){
+func runCommand(commandName string , args []string, sessionObject session.Session, cmdFactory command.ConcreteFactory)(bool){
 	command := cmdFactory.CmdsByName[commandName]
 	cmdFlags := cmdFactory.GetCommandFlags(command)
 	flagValues := getRequirements(command, cmdFlags, sessionObject, args)
-	//set session object username
-	sessionObject = setSession(cmdFlags, flagValues)
 	configs := cmdFactory.GetCommandConfigs(command, flagValues)
 	continueFlag, cookie := command.Run(configs)
-	return continueFlag, cookie
+	if(commandName==loginCommand && continueFlag){
+		//set session object username
+		sessionObject = setSessionUserName(cmdFlags, flagValues)
+		sessionObject.Cookie=cookie
+		success := writeSession(sessionObject, filename)
+		if(success){
+			fmt.Println("Your session details are stored.")
+		}else{
+			fmt.Println("Error occured while storing session!")
+		}
+	}
+	return continueFlag
 }
 //setSession returns a session object with userName set.
-func setSession(flags []string, flagValues []string)(session.Session){
+func setSessionUserName(flags []string, flagValues []string)(session.Session){
 	for n := 0; n < len(flags); n++ {
 		//If userName is available in flagValues set it in session
 		if(flags[n]=="-u"){

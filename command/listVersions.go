@@ -75,6 +75,7 @@ func(versionsList VersionsList) Run(c CommandConfigs)(bool,string){
 			//<TODO> Make these error checking functionality common
 			if (errorFormat.ErrorCode == http.StatusUnauthorized) {
 				fmt.Println("Your session has expired.Please login and try again!")
+				return false , c.Cookie
 			}
 		}else{
 			var appVersions []formats.AppVersionFormat
