@@ -21,6 +21,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"github.com/codegangsta/cli"
+	"encoding/json"
+	"github.com/Dilhasha/AppFacCLI/cli/formats"
 )
 
 /* PrintLogs is the implementation of the command to display build logs of a given application of app factory user */
@@ -55,17 +57,28 @@ func (printLogs PrintLogs)Metadata() CommandMetadata{
 }
 
 /* Run calls the Run function of CommandConfigs and verifies the response from that call.*/
-func(printLogs PrintLogs) Run(c CommandConfigs)(bool,string){
+func(printLogs PrintLogs) Run(configs CommandConfigs)(bool,string){
 	var resp *http.Response
 	var bodyStr string
-	resp = c.Run()
+	resp = configs.Run()
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
 	if (resp.Status == "200 OK") {
 		bodyStr = string(body)
-		println(bodyStr)
 
+		var errorFormat formats.ErrorFormat
+		err := json.Unmarshal([]byte(bodyStr), &errorFormat)
+
+		if (err == nil) {
+			//<TODO> Make these error checking functionality common
+			if (errorFormat.ErrorCode == http.StatusUnauthorized) {
+				println("Your session has expired.Please login and try again!")
+				return false , configs.Cookie
+			}
+		}else{
+			println(bodyStr)
+		}
 
 	}
-	return true,c.Cookie
+	return true,configs.Cookie
 }

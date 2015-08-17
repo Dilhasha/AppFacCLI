@@ -58,10 +58,10 @@ func (versionsList VersionsList)Metadata() CommandMetadata{
 
 
 /* Run calls the Run function of CommandConfigs and verifies the response from that call.*/
-func(versionsList VersionsList) Run(c CommandConfigs)(bool,string){
+func(versionsList VersionsList) Run(configs CommandConfigs)(bool,string){
 	var resp *http.Response
 	var bodyStr string
-	resp = c.Run()
+	resp = configs.Run()
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
 
@@ -75,6 +75,7 @@ func(versionsList VersionsList) Run(c CommandConfigs)(bool,string){
 			//<TODO> Make these error checking functionality common
 			if (errorFormat.ErrorCode == http.StatusUnauthorized) {
 				fmt.Println("Your session has expired.Please login and try again!")
+				return false , configs.Cookie
 			}
 		}else{
 			var appVersions []formats.AppVersionFormat

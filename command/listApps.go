@@ -58,10 +58,10 @@ func (appList AppList)Metadata() CommandMetadata{
 }
 
 /* Run calls the Run function of CommandConfigs and verifies the response from that call.*/
-func(applist AppList) Run(c CommandConfigs)(bool,string){
+func(applist AppList) Run(configs CommandConfigs)(bool,string){
 	var resp *http.Response
 	var bodyStr string
-	resp = c.Run()
+	resp = configs.Run()
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
 	if (resp.Status == "200 OK") {
@@ -71,8 +71,9 @@ func(applist AppList) Run(c CommandConfigs)(bool,string){
 		if (err == nil) {
 			//<TODO> Make these error checking functionality common
 			if (errorFormat.ErrorCode == http.StatusUnauthorized) {
-				fmt.Println("Your session has expired.Please login and try again!")
 				println(errorFormat.ErrorMessage)
+				fmt.Println("Your session has expired.Please login and try again!")
+				return false , c.Cookie
 			}
 		}else{
 			var apps []formats.AppFormat
@@ -93,5 +94,5 @@ func(applist AppList) Run(c CommandConfigs)(bool,string){
 
 		}
 	}
-	return true,c.Cookie
+	return true,configs.Cookie
 }

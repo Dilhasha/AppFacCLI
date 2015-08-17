@@ -43,7 +43,7 @@ func (appCreation AppCreation)Metadata() CommandMetadata{
 	return CommandMetadata{
 		Name : "createNewApplication",
 		Description : "Creates a new application",
-		ShortName : "ca",
+		ShortName : "cap",
 		Usage : "create application",
 		Url : appCreation.Url,
 		SkipFlagParsing : false,
@@ -53,7 +53,7 @@ func (appCreation AppCreation)Metadata() CommandMetadata{
 			cli.StringFlag{Name: "-k", Usage: "applicationKey"},
 			cli.StringFlag{Name: "-n", Usage: "applicationName"},
 			cli.StringFlag{Name: "-d", Usage: "applicationDescription"},
-			cli.StringFlag{Name: "-t", Usage: "applicationType"},
+			cli.StringFlag{Name: "-t", Usage: "appType"},
 			cli.StringFlag{Name: "-r", Usage: "repositoryType"},
 		},
 	}

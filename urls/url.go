@@ -33,13 +33,13 @@ type Urls struct {
 func GetUrls()Urls{
 	return Urls{
 		Login :"https://203.94.95.207:9443/appmgt/site/blocks/user/login/ajax/login.jag",
-		ListApps :"https://apps.cloud.wso2.com/appmgt/site/blocks/application/get/ajax/list.jag",
-		ListVersions : "https://apps.cloud.wso2.com/appmgt/site/blocks/application/get/ajax/list.jag",
-		CreateApp : "https://apps.cloud.wso2.com/appmgt/site/blocks/application/add/ajax/add.jag",
+		ListApps :"https://203.94.95.207:9443/appmgt/site/blocks/application/get/ajax/list.jag",
+		ListVersions : "https://203.94.95.207:9443/appmgt/site/blocks/application/get/ajax/list.jag",
+		CreateApp : "https://203.94.95.207:9443/appmgt/site/blocks/application/add/ajax/add.jag",
 		Exit :"",
-		GetAppInfo : "https://apps.cloud.wso2.com/appmgt/site/blocks/application/get/ajax/list.jag",
-		CreateArtifact :"https://apps.cloud.wso2.com/appmgt/site/blocks/reposBuilds/add/ajax/add.jag",
-		GetBuildSuccessInfo : "https://apps.cloud.wso2.com/appmgt/site/blocks/buildandrepo/list/ajax/list.jag",
+		GetAppInfo : "https://203.94.95.207:9443/appmgt/site/blocks/application/get/ajax/list.jag",
+		CreateArtifact :"https://203.94.95.207:9443/appmgt/site/blocks/reposBuilds/add/ajax/add.jag",
+		GetBuildSuccessInfo : "https://203.94.95.207:9443/appmgt/site/blocks/reposBuilds/list/ajax/list.jag",
 		PrintLogs : "https://203.94.95.207:9443/appmgt/site/blocks/reposBuilds/get/ajax/get.jag",
 	}
 }

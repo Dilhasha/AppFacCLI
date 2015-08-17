@@ -19,7 +19,6 @@ package command
 
 import (
 	"bytes"
-	"errors"
 	"github.com/codegangsta/cli"
 	"github.com/Dilhasha/AppFacCLI/cli/urls"
 	"io/ioutil"
@@ -36,22 +35,25 @@ const (
 
 type ConcreteFactory struct {
 	CmdsByName map[string]Command
+	CombinedCommandsByName map[string]Command
 }
-
 
 /*GetByCmdName returns command given the command name or short name*/
-func (factory ConcreteFactory) GetByCmdName(cmdName string) (cmd Command, err error) {
-	cmd, found := factory.CmdsByName[cmdName]
+func (factory ConcreteFactory) CheckIfCommandExists(cmdName string) (string,bool) {
+	cmd , found := factory.CmdsByName[cmdName]
 	if !found {
 		for _, command := range factory.CmdsByName {
+			//If command matches with the short name
 			if command.Metadata().ShortName == cmdName {
-				return command, nil
+				return command.Metadata().Name,true
 			}
 		}
-		err = errors.New("Command not found")
+		return "",false
 	}
-	return
+	return cmd.Metadata().Name,true
 }
+
+
 
 /* NewFactory returns a new concreteFactory with with a map of commands.*/
 func NewFactory() (factory ConcreteFactory) {
@@ -60,14 +62,15 @@ func NewFactory() (factory ConcreteFactory) {
 	//Create map of commands
 	factory.CmdsByName = make(map[string]Command)
 	factory.CmdsByName["login"] = NewLogin(urls.Login)
-	factory.CmdsByName["listApps"] = NewAppList(urls.ListApps)
-	factory.CmdsByName["listVersions"] = NewVersionsList(urls.ListVersions)
-	factory.CmdsByName["createApp"] = NewAppCreation(urls.CreateApp)
+	factory.CmdsByName["getApplicationsOfUser"] = NewAppList(urls.ListApps)
+	factory.CmdsByName["getAppVersionsInStage"] = NewVersionsList(urls.ListVersions)
+	factory.CmdsByName["createNewApplication"] = NewAppCreation(urls.CreateApp)
 	factory.CmdsByName["exit"] = NewExit(urls.Exit)
 	factory.CmdsByName["getAppInfo"] = NewAppInfo(urls.GetAppInfo)
-	factory.CmdsByName["buildApp"] = NewArtifact(urls.CreateArtifact)
-	factory.CmdsByName["getBuildSuccessInfo"] = NewBuildSuccessInfo(urls.GetBuildSuccessInfo)
-	factory.CmdsByName["printLogs"] = NewPrintLogs(urls.PrintLogs)
+	factory.CmdsByName["createArtifact"] = NewArtifact(urls.CreateArtifact)
+	factory.CmdsByName["getBuildAndDeployStatusForVersion"] = NewBuildSuccessInfo(urls.GetBuildSuccessInfo)
+	factory.CmdsByName["printBuildLogs"] = NewPrintLogs(urls.PrintLogs)
+	factory.CmdsByName["triggerBuild"] = NewBuildApp(urls.CreateArtifact)
 	return
 }
 

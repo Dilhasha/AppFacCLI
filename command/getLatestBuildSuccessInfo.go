@@ -21,6 +21,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"github.com/codegangsta/cli"
+	"encoding/json"
+	"github.com/Dilhasha/AppFacCLI/cli/formats"
 )
 
 /* BuildSuccessInfo is the implementation of the command to display the last build success details of an application. */
@@ -40,7 +42,7 @@ func (buildSuccessInfo BuildSuccessInfo)Metadata() CommandMetadata{
 	return CommandMetadata{
 		Name:"getBuildAndDeployStatusForVersion",
 		Description : "get the last build success details of a particular version",
-		ShortName : "si",
+		ShortName : "bs",
 		Usage:"get build success info",
 		Url:buildSuccessInfo.Url,
 		SkipFlagParsing:false,
@@ -53,18 +55,32 @@ func (buildSuccessInfo BuildSuccessInfo)Metadata() CommandMetadata{
 }
 
 /* Run calls the Run function of CommandConfigs and verifies the response from that call.*/
-func(buildSuccessInfo BuildSuccessInfo) Run(c CommandConfigs)(bool,string){
+func(buildSuccessInfo BuildSuccessInfo) Run(configs CommandConfigs)(bool,string){
 	var resp *http.Response
 	var bodyStr string
-	resp = c.Run()
+	resp = configs.Run()
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
 	if (resp.Status == "200 OK") {
 		bodyStr = string(body)
-		println(bodyStr)
+		var errorFormat formats.ErrorFormat
+		var buildSuccessFormat formats.BuildSuccessFormat
 
-
-
+		err := json.Unmarshal([]byte(bodyStr), &errorFormat)
+		if (err == nil) {
+				//<TODO> Make these error checking functionality common
+				if (errorFormat.ErrorCode == http.StatusUnauthorized) {
+					println("Your session has expired.Please login and try again!")
+					return false , configs.Cookie
+				}else{
+					err = json.Unmarshal([]byte(bodyStr), &buildSuccessFormat)
+					if (err == nil) {
+						println("Build ID is: ",buildSuccessFormat.BuildId)
+						println("Build status is: ",buildSuccessFormat.BuildStatus)
+						println("Deployed Id is: ",buildSuccessFormat.DeployedId)
+					}
+				}
+		}
 	}
-	return true,c.Cookie
+	return true,configs.Cookie
 }

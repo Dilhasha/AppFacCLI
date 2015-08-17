@@ -21,6 +21,9 @@ package command
 import (
 	"io/ioutil"
 	"github.com/codegangsta/cli"
+	"net/http"
+	"encoding/json"
+	"github.com/Dilhasha/AppFacCLI/cli/formats"
 )
 
 /* createArtifact is the implementation of the command to create an artifact and deploy it in app factory */
@@ -40,7 +43,7 @@ func (artifact Artifact)Metadata() CommandMetadata{
 	return CommandMetadata{
 		Name:"createArtifact",
 		Description : "create artifact of an application",
-		ShortName : "ca",
+		ShortName : "car",
 		Usage:"create artifact",
 		Url:artifact.Url,
 		SkipFlagParsing:false,
@@ -62,9 +65,19 @@ func(artifact Artifact) Run(configs CommandConfigs)(bool,string){
 	response := configs.Run()
 	defer response.Body.Close()
 	body, _ := ioutil.ReadAll(response.Body)
-	if (response.Status == "200 OK") {
-		bodyString := string(body)
-		println(bodyString)
+
+	bodyStr := string(body)
+	var errorFormat formats.ErrorFormat
+
+	err := json.Unmarshal([]byte(bodyStr), &errorFormat)
+	if (err == nil) {
+			//<TODO> Make these error checking functionality common
+			if (errorFormat.ErrorCode == http.StatusUnauthorized) {
+				println("Your session has expired.Please login and try again!")
+				return false , configs.Cookie
+			}else{
+				println(bodyStr)
+			}
 	}
 	return true,configs.Cookie
 }
