@@ -35,7 +35,6 @@ const (
 
 type ConcreteFactory struct {
 	CmdsByName map[string]Command
-	CombinedCommandsByName map[string]Command
 }
 
 /*GetByCmdName returns command given the command name or short name*/
@@ -96,6 +95,14 @@ func (factory ConcreteFactory) GetCommandConfigs(command Command,flagValues []st
 
 	buffer.WriteString(queryStarter + equator + command.Metadata().Name)
 
+	if(len(flagValues) == 0){
+		return CommandConfigs{
+			Url:"",
+			Query:"",
+			Cookie:"",
+		}
+	}
+
 	for n := 0; n < len(flags); n++ {
 		//If flag is a string flag
 		if flag, ok := flags[n].(cli.StringFlag); ok {
@@ -131,3 +138,4 @@ func getURLs(filename string)(urls.Urls){
 	}
 	return urlValues
 }
+

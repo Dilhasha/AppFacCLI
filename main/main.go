@@ -25,6 +25,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/Dilhasha/AppFacCLI/cli/password"
 	"github.com/Dilhasha/AppFacCLI/cli/session"
+	"github.com/Dilhasha/AppFacCLI/cli/help"
 	"fmt"
 	"io/ioutil"
 	"io"
@@ -50,12 +51,9 @@ func main() {
 
 	//command `appfac` without argument or help (h) flag
 	if len(os.Args) == 1 || os.Args[1] == "help" || os.Args[1] == "h" {
-		println("Showing help commands")
-		app.Run(os.Args)
+		help.ToolHelp(cmdFactory)
 	}else if command, ok := cmdFactory.CheckIfCommandExists(os.Args[1]); ok {
-
 		args = os.Args[1:]
-
 		if(command != loginCommand) {
 			//If session file exists
 			if _, err := os.Stat(filename); err == nil {
@@ -83,7 +81,8 @@ func main() {
 			continueFlag = runCommand(loginCommand,args,sessionObject,cmdFactory)
 		}
 	}else{
-		println("The command you entered does not exist!")
+		println("'"+os.Args[1]+"' is not a valid command. See 'appfac help'")
+
 	}
 
 }
@@ -125,6 +124,7 @@ func getRequirements(command command.Command,cmdFlags []string,sessionObject ses
 
 //matchArgAndFlags matches the flags against user arguments and data available in session.
 func matchArgAndFlags(flags []string, args []string,sessionObject session.Session) (bool,[]string) {
+
 	var i = 0
 	var requirements=make([]string,len(flags),len(flags))
 	Loop:
@@ -174,6 +174,10 @@ func runCommand(commandName string , args []string, sessionObject session.Sessio
 	cmdFlags := cmdFactory.GetCommandFlags(command)
 	flagValues := getRequirements(command, cmdFlags, sessionObject, args)
 	configs := cmdFactory.GetCommandConfigs(command, flagValues)
+	if(configs.Url=="" && configs.Query=="" && configs.Cookie==""){
+		help.HelpTemplate(cmdFactory.CmdsByName[commandName].Metadata())
+		return true
+	}
 	continueFlag, cookie := command.Run(configs)
 	if(commandName==loginCommand && continueFlag){
 		//set session object username
