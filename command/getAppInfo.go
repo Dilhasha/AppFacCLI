@@ -59,16 +59,14 @@ func (appInfo AppInfo)Metadata() CommandMetadata{
 func(appInfo AppInfo) Run(configs CommandConfigs)(bool,string){
 
 	var resp *http.Response
-	var bodyString string
 	resp = configs.Run()
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
 	if (resp.Status == "200 OK") {
-		bodyString = string(body)
+		bodyString := string(body)
 		var errorFormat formats.ErrorFormat
 		err := json.Unmarshal([]byte(bodyString), &errorFormat)
 		if (err == nil) {
-			//<TODO> Make these error checking functionality common
 			if (errorFormat.ErrorCode == http.StatusUnauthorized) {
 				fmt.Println("Your session has expired.Please login and try again!")
 				return false, configs.Cookie

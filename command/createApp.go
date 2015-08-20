@@ -57,23 +57,23 @@ func (appCreation AppCreation)Metadata() CommandMetadata{
 			cli.StringFlag{Name: "-r", Usage: "repositoryType"},
 		},
 	}
-	
+
 }
 
 /* Run calls the Run function of CommandConfigs and verifies the response from that call.*/
 func(appCreation AppCreation) Run(configs CommandConfigs) (bool,string){
+
 	var response *http.Response
-	var bodyString string
+
 	response = configs.Run()
 	defer response.Body.Close()
 	body, _ := ioutil.ReadAll(response.Body)
 	if (response.Status == "200 OK") {
-		bodyString = string(body)
+		bodyString := string(body)
 		var errorFormat formats.ErrorFormat
 		err := json.Unmarshal([]byte(bodyString), &errorFormat)
 
 		if (err == nil) {
-			//<TODO> Refine error checking functionality
 			if (errorFormat.ErrorCode == http.StatusUnauthorized) {
 				fmt.Println("Your session has expired.Please login and try again!")
 				return false, configs.Cookie
@@ -82,8 +82,11 @@ func(appCreation AppCreation) Run(configs CommandConfigs) (bool,string){
 		var successMessage formats.SuccessFormat
 		err = json.Unmarshal([]byte(bodyString), &successMessage)
 		if(err == nil){
+			fmt.Println("Application creation is successful.")
 			fmt.Println(successMessage.Message)
 		}
+	}else if (response.Status == "500 Internal Server Error") {
+		fmt.Println("Application already exists. Check application name and key!")
 	}
 	return true , configs.Cookie
 }

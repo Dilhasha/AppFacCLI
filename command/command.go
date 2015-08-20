@@ -20,6 +20,7 @@
  command metadata and command configurations.*/
 package command
 
+
 type Command interface {
 	Metadata() CommandMetadata
 	Run(c CommandConfigs) (bool,string)

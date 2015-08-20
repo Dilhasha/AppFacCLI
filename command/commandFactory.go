@@ -64,12 +64,13 @@ func NewFactory() (factory ConcreteFactory) {
 	factory.CmdsByName["getApplicationsOfUser"] = NewAppList(urls.ListApps)
 	factory.CmdsByName["getAppVersionsInStage"] = NewVersionsList(urls.ListVersions)
 	factory.CmdsByName["createNewApplication"] = NewAppCreation(urls.CreateApp)
-	factory.CmdsByName["exit"] = NewExit(urls.Exit)
 	factory.CmdsByName["getAppInfo"] = NewAppInfo(urls.GetAppInfo)
 	factory.CmdsByName["createArtifact"] = NewArtifact(urls.CreateArtifact)
 	factory.CmdsByName["getBuildAndDeployStatusForVersion"] = NewBuildSuccessInfo(urls.GetBuildSuccessInfo)
 	factory.CmdsByName["printBuildLogs"] = NewPrintLogs(urls.PrintLogs)
 	factory.CmdsByName["triggerBuild"] = NewBuildApp(urls.CreateArtifact)
+	factory.CmdsByName["logout"] = NewLogout(urls.Logout)
+	factory.CmdsByName["deleteApplication"] = NewAppDeletion(urls.DeleteApp)
 	return
 }
 

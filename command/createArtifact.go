@@ -66,17 +66,16 @@ func(artifact Artifact) Run(configs CommandConfigs)(bool,string){
 	defer response.Body.Close()
 	body, _ := ioutil.ReadAll(response.Body)
 
-	bodyStr := string(body)
+	bodyString := string(body)
 	var errorFormat formats.ErrorFormat
 
-	err := json.Unmarshal([]byte(bodyStr), &errorFormat)
+	err := json.Unmarshal([]byte(bodyString), &errorFormat)
 	if (err == nil) {
-			//<TODO> Make these error checking functionality common
 			if (errorFormat.ErrorCode == http.StatusUnauthorized) {
 				println("Your session has expired.Please login and try again!")
 				return false , configs.Cookie
 			}else{
-				println(bodyStr)
+				println(bodyString)
 			}
 	}
 	return true,configs.Cookie

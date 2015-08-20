@@ -24,33 +24,30 @@ import (
 	"encoding/json"
 	"github.com/Dilhasha/AppFacCLI/cli/formats"
 	"github.com/codegangsta/cli"
-	tm "github.com/buger/goterm"
 )
 
-/* AppList is the implementation of the command to display details of available applications for app factory user */
-
-type AppList struct {
+type Logout struct {
 	Url string
 }
 
+/* Logout is the implementation of the command for a user to logout from app factory */
 
-func NewAppList(url string) (cmd AppList) {
-	return AppList{
+func NewLogout(url string) (cmd Logout) {
+	return Logout{
 		Url:url,
 	}
 }
 
-/* Returns metadata for listing application details of a user.*/
-func (appList AppList)Metadata() CommandMetadata{
+/* Returns metadata for exit*/
+func (logout Logout)Metadata() CommandMetadata{
 	return CommandMetadata{
-		Name:"getApplicationsOfUser",
-		Description : "Lists applications of a user",
-		ShortName : "la",
-		Usage:"list apps",
-		Url:appList.Url,
+		Name:"logout",
+		Description : "Logouts from a user session",
+		ShortName : "lo",
+		Usage:"lo",
+		Url:logout.Url,
 		SkipFlagParsing:false,
 		Flags: []cli.Flag{
-			cli.StringFlag{Name: "-u", Usage: "userName"},
 			cli.StringFlag{Name: "-c", Usage: "cookie"},
 		},
 	}
@@ -58,7 +55,7 @@ func (appList AppList)Metadata() CommandMetadata{
 }
 
 /* Run calls the Run function of CommandConfigs and verifies the response from that call.*/
-func(applist AppList) Run(configs CommandConfigs)(bool,string){
+func(logout Logout) Run(configs CommandConfigs)(bool,string){
 	var resp *http.Response
 	resp = configs.Run()
 	defer resp.Body.Close()
@@ -73,24 +70,9 @@ func(applist AppList) Run(configs CommandConfigs)(bool,string){
 				fmt.Println("Your session has expired.Please login and try again!")
 				return false , configs.Cookie
 			}
-		}else{
-			var apps []formats.AppFormat
-			err := json.Unmarshal([]byte(bodyString), &apps)
-			if(err ==nil){
-				fmt.Println("\nYou have ", len(apps)," applications. Details of applications are as follows.\n")
-				totals := tm.NewTable(0, 10, 5, ' ', 0)
-				fmt.Fprintf(totals, "Name\tKey\tType\n")
-				fmt.Fprintf(totals, "-------\t------\t-----\n")
-				for _, app := range apps {
-					fmt.Fprintf(totals, "%s\t%s\t%s\n", app.Name,app.Key,app.Type)
-				}
-				tm.Println(totals)
-				tm.Flush()
-			}
-
-
-
 		}
+		println("Successfully logged out from appfac.")
+
 	}
 	return true,configs.Cookie
 }

@@ -108,13 +108,13 @@ func(buildApp BuildApp) Run(configs CommandConfigs)(bool,string){
 		}
 		if(buildId == id +1){
 			//Build is successful
-			println("The build has been successful. Displaying build logs below..")
+			println("\nThe build has been successful. Displaying build logs below..\n")
 			query := configs.Query
 			query = strings.Replace(query, "getBuildAndDeployStatusForVersion" , "printBuildLogs" , 1)
 			query = strings.Replace(query, "version" , "applicationVersion" , 1)
 
 			//append build id and tenant domain
-			query = query + "&lastBuildId=" + strconv.FormatInt(buildId , 10) + "&tenantDomain=" + getTenantDomain(query)
+			query = query + "&lastBuildId=" + strconv.FormatInt(buildId , 10) + "&tenantDomain=" + getTenantDomain()
 			configs.Query = query
 			configs.Url = urls.GetUrls().PrintLogs
 			printLogs := NewPrintLogs(urls.GetUrls().PrintLogs)
@@ -132,23 +132,21 @@ func(buildApp BuildApp) Run(configs CommandConfigs)(bool,string){
 /* checkBuildId checks for the build id and returns the success of the check and the build id*/
 func checkBuildId(configs CommandConfigs)(bool,int64) {
 	var resp *http.Response
-	var bodyStr string
 	resp = configs.Run()
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
 	if (resp.Status == "200 OK") {
-		bodyStr = string(body)
+		bodyString := string(body)
 		var errorFormat formats.ErrorFormat
 		var buildSuccessFormat formats.BuildSuccessFormat
 
-		err := json.Unmarshal([]byte(bodyStr), &errorFormat)
+		err := json.Unmarshal([]byte(bodyString), &errorFormat)
 		if (err == nil) {
-			//<TODO> Make these error checking functionality common
 			if (errorFormat.ErrorCode == http.StatusUnauthorized) {
 				println("Your session has expired. Please login and try again!")
 				return false, -1
 			}else {
-				err = json.Unmarshal([]byte(bodyStr), &buildSuccessFormat)
+				err = json.Unmarshal([]byte(bodyString), &buildSuccessFormat)
 				if (err == nil) {
 					return true, buildSuccessFormat.BuildId
 				}
@@ -180,10 +178,3 @@ func getTenantDomain() string{
 	}
 	return ""
 }
-
-
-
-
-
-
-

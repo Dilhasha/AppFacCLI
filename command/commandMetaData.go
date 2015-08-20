@@ -26,7 +26,6 @@ type CommandMetadata struct {
 	Url				string
 	Description     string
 	Flags           []cli.Flag
-	//<TODO>Help	string
 	// Specifies whether or not to parse values from user arguments
 	SkipFlagParsing bool
 }

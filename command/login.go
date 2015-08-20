@@ -56,16 +56,15 @@ func (login Login)Metadata() CommandMetadata{
 /* Run calls the Run function of CommandConfigs and verifies the response from that call.*/
 func(login Login) Run(configs CommandConfigs)(bool,string){
 	var resp *http.Response
-	var bodyStr string
 	resp=configs.Run()
 	defer resp.Body.Close()
 
-	if(resp.Status=="200 OK"){
+	if(resp.Status == "200 OK"){
 		body, _ := ioutil.ReadAll(resp.Body)
-		bodyStr=string(body)
-		if(strings.Contains(bodyStr, "true")){
+		bodyString := string(body)
+		if(strings.Contains(bodyString, "true")){
 			fmt.Println("You have Successfully logged in.")
-			cookie:=strings.Split(resp.Header.Get("Set-Cookie"),";")
+			cookie := strings.Split(resp.Header.Get("Set-Cookie"),";")
 			configs.Cookie=cookie[0]
 
 		}else{

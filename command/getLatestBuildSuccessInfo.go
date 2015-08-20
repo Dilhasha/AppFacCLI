@@ -57,23 +57,21 @@ func (buildSuccessInfo BuildSuccessInfo)Metadata() CommandMetadata{
 /* Run calls the Run function of CommandConfigs and verifies the response from that call.*/
 func(buildSuccessInfo BuildSuccessInfo) Run(configs CommandConfigs)(bool,string){
 	var resp *http.Response
-	var bodyStr string
 	resp = configs.Run()
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
 	if (resp.Status == "200 OK") {
-		bodyStr = string(body)
+		bodyString := string(body)
 		var errorFormat formats.ErrorFormat
 		var buildSuccessFormat formats.BuildSuccessFormat
 
-		err := json.Unmarshal([]byte(bodyStr), &errorFormat)
+		err := json.Unmarshal([]byte(bodyString), &errorFormat)
 		if (err == nil) {
-				//<TODO> Make these error checking functionality common
 				if (errorFormat.ErrorCode == http.StatusUnauthorized) {
 					println("Your session has expired.Please login and try again!")
 					return false , configs.Cookie
 				}else{
-					err = json.Unmarshal([]byte(bodyStr), &buildSuccessFormat)
+					err = json.Unmarshal([]byte(bodyString), &buildSuccessFormat)
 					if (err == nil) {
 						println("Build ID is: ",buildSuccessFormat.BuildId)
 						println("Build status is: ",buildSuccessFormat.BuildStatus)
