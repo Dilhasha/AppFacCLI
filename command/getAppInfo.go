@@ -35,20 +35,20 @@ type AppInfo struct {
 
 func NewAppInfo(url string) (cmd AppInfo) {
 	return AppInfo{
-		Url:url,
+		Url : url,
 	}
 }
 
 /* Returns metadata for application information.*/
 func (appInfo AppInfo)Metadata() CommandMetadata{
 	return CommandMetadata{
-		Name:"getAppInfo",
+		Name : "getAppInfo",
 		Description : "get information of an application",
 		ShortName : "ai",
-		Usage:"get app info",
-		Url:appInfo.Url,
-		SkipFlagParsing:false,
-		Flags: []cli.Flag{
+		Usage : "get app info",
+		Url : appInfo.Url,
+		SkipFlagParsing : false,
+		Flags : []cli.Flag{
 			cli.StringFlag{Name: "-a", Usage: "applicationKey"},
 			cli.StringFlag{Name: "-c", Usage: "cookie"},
 		},
@@ -57,10 +57,14 @@ func (appInfo AppInfo)Metadata() CommandMetadata{
 
 /* Run calls the Run function of CommandConfigs and verifies the response from that call.*/
 func(appInfo AppInfo) Run(configs CommandConfigs)(bool,string){
-
-	var resp *http.Response
-	resp = configs.Run()
-	defer resp.Body.Close()
+	resp := configs.Run()
+	//if request did not fail
+	if(resp != nil){
+		defer resp.Body.Close()
+	}else{
+		//exit the cli
+		return true, ""
+	}
 	body, _ := ioutil.ReadAll(resp.Body)
 	if (resp.Status == "200 OK") {
 		bodyString := string(body)

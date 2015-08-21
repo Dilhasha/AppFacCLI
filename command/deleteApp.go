@@ -34,7 +34,7 @@ type AppDeletion struct {
 
 func NewAppDeletion(url string) (cmd AppDeletion) {
 	return AppDeletion{
-		Url:url,
+		Url : url,
 	}
 }
 
@@ -42,13 +42,13 @@ func NewAppDeletion(url string) (cmd AppDeletion) {
 /* Returns metadata for app deletion*/
 func (appDeletion AppDeletion)Metadata() CommandMetadata{
 	return CommandMetadata{
-		Name:"deleteApplication",
-		Description : "deletes an application",
+		Name : "deleteApplication",
+		Description : "delete an application of user",
 		ShortName : "da",
-		Usage:"to delete an app",
-		Url:appDeletion.Url,
-		SkipFlagParsing:false,
-		Flags: []cli.Flag{
+		Usage : "delete app",
+		Url : appDeletion.Url,
+		SkipFlagParsing : false,
+		Flags : []cli.Flag{
 			cli.StringFlag{Name: "-a", Usage: "appKey"},
 			cli.StringFlag{Name: "-u", Usage: "userName"},
 			cli.StringFlag{Name: "-c", Usage: "cookie"},
@@ -59,12 +59,16 @@ func (appDeletion AppDeletion)Metadata() CommandMetadata{
 
 
 /* Run calls the Run function of CommandConfigs and verifies the response from that call.*/
-func(appDeletion AppDeletion) Run(configs CommandConfigs)(bool,string){
-	var resp *http.Response
-
+func(appDeletion AppDeletion) Run(configs CommandConfigs)(bool , string){
 	//Send http request and get response
-	resp = configs.Run()
-	defer resp.Body.Close()
+	resp := configs.Run()
+	//if request did not fail
+	if(resp != nil){
+		defer resp.Body.Close()
+	}else{
+		//exit the cli
+		return true, ""
+	}
 	body, _ := ioutil.ReadAll(resp.Body)
 
 	if (resp.Status == "200 OK") {
@@ -73,7 +77,7 @@ func(appDeletion AppDeletion) Run(configs CommandConfigs)(bool,string){
 		err := json.Unmarshal([]byte(bodyString), &errorFormat)
 		if (err == nil) {
 			if (errorFormat.ErrorCode == http.StatusUnauthorized) {
-				println(errorFormat.ErrorMessage)
+				fmt.Println(errorFormat.ErrorMessage)
 				fmt.Println("Your session has expired.Please login and try again!")
 				return false , configs.Cookie
 			}

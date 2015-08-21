@@ -23,6 +23,7 @@ import (
 	"github.com/codegangsta/cli"
 	"encoding/json"
 	"github.com/Dilhasha/AppFacCLI/cli/formats"
+	"fmt"
 )
 
 /* PrintLogs is the implementation of the command to display build logs of a given application of app factory user */
@@ -32,20 +33,20 @@ type PrintLogs struct {
 
 func NewPrintLogs(url string) (cmd PrintLogs) {
 	return PrintLogs{
-		Url:url,
+		Url : url,
 	}
 }
 
 /* Returns metadata for printing build logs.*/
 func (printLogs PrintLogs)Metadata() CommandMetadata{
 	return CommandMetadata{
-		Name:"printBuildLogs",
+		Name : "printBuildLogs",
 		Description : "print logs for a given build",
 		ShortName : "pl",
-		Usage:"print logs",
-		Url:printLogs.Url,
-		SkipFlagParsing:false,
-		Flags: []cli.Flag{
+		Usage : "print logs",
+		Url : printLogs.Url,
+		SkipFlagParsing : false,
+		Flags : []cli.Flag{
 			cli.StringFlag{Name: "-a", Usage: "applicationKey"},
 			cli.StringFlag{Name: "-v", Usage: "applicationVersion"},
 			cli.StringFlag{Name: "-d", Usage: "tenantDomain"},
@@ -58,25 +59,27 @@ func (printLogs PrintLogs)Metadata() CommandMetadata{
 
 /* Run calls the Run function of CommandConfigs and verifies the response from that call.*/
 func(printLogs PrintLogs) Run(configs CommandConfigs)(bool,string){
-	var resp *http.Response
-	resp = configs.Run()
-	defer resp.Body.Close()
+	resp := configs.Run()
+	//if request did not fail
+	if(resp != nil){
+		defer resp.Body.Close()
+	}else{
+		//exit the cli
+		return true, ""
+	}
 	body, _ := ioutil.ReadAll(resp.Body)
 	if (resp.Status == "200 OK") {
 		bodyString := string(body)
-
 		var errorFormat formats.ErrorFormat
 		err := json.Unmarshal([]byte(bodyString), &errorFormat)
-
 		if (err == nil) {
 			if (errorFormat.ErrorCode == http.StatusUnauthorized) {
-				println("Your session has expired.Please login and try again!")
+				fmt.Println("Your session has expired.Please login and try again!")
 				return false , configs.Cookie
 			}
 		}else{
-			println(bodyString)
+			fmt.Println(bodyString)
 		}
-
 	}
-	return true,configs.Cookie
+	return true , configs.Cookie
 }

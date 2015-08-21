@@ -19,24 +19,24 @@ package help
 
 import (
 	"github.com/Dilhasha/AppFacCLI/cli/command"
-	tm "github.com/buger/goterm"
+	tablemanagement "github.com/buger/goterm"
 	"fmt"
 )
 
-func ToolHelp(factory command.ConcreteFactory){
-	println("\n"+Bold("NAME")+" : appfac\n")
-	println(Bold("USAGE")+" : CLI Tool for WSO2 Appfactory\n")
-	println(Bold("VERSION")+" : 1.0.0\n")
-	println(Bold("COMMANDS")+" :\n")
+func ToolHelp(factory command.CommandFactory){
+	fmt.Println("\n"+Bold("NAME")+" : appfac\n")
+	fmt.Println(Bold("USAGE")+" : CLI Tool for WSO2 Appfactory\n")
+	fmt.Println(Bold("VERSION")+" : 1.0.0\n")
+	fmt.Println(Bold("COMMANDS")+" :\n")
 
-	commands := tm.NewTable(0, 10, 5, ' ', 0)
+	commands := tablemanagement.NewTable(0, 10, 5, ' ', 0)
 	fmt.Fprintf(commands, "%s\t%s\t%s\n", "help","h","Shows help for appfac CLI tool")
 	for _, command := range factory.CmdsByName {
 		metadata := command.Metadata()
 		fmt.Fprintf(commands, "%s\t%s\t%s\n", metadata.Name,metadata.ShortName,metadata.Description)
 	}
-	tm.Println(commands)
-	tm.Flush()
+	tablemanagement.Println(commands)
+	tablemanagement.Flush()
 }
 
 func Bold(str string) string {

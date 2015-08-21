@@ -3,7 +3,7 @@
 set -e
 set -x
 
-OUTDIR=$(dirname $0)/../outNw
+OUTDIR=$(dirname $0)/../out
 
 GOARCH=amd64 GOOS=windows $(dirname $0)/build && cp $OUTDIR/appfac $OUTDIR/appfac-windows-amd64.exe
 GOARCH=386 GOOS=windows $(dirname $0)/build && cp $OUTDIR/appfac $OUTDIR/appfac-windows-386.exe

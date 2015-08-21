@@ -20,23 +20,25 @@ package help
 import (
 	"github.com/Dilhasha/AppFacCLI/cli/command"
 	"github.com/codegangsta/cli"
-	tm "github.com/buger/goterm"
+	tablemanagement "github.com/buger/goterm"
 	"fmt"
 )
 
 func HelpTemplate(metadata command.CommandMetadata){
-	commandHelp := tm.NewTable(0, 10, 5, ' ', 0)
+	commandHelp := tablemanagement.NewTable(0, 10, 5, ' ', 0)
 	fmt.Fprintf(commandHelp, "%s\t%s\n", Bold("COMMAND"),metadata.Name)
 	fmt.Fprintf(commandHelp, "%s\t%s\n", Bold("SHORTNAME"),metadata.ShortName)
 	fmt.Fprintf(commandHelp, "%s\t%s\n", Bold("USAGE"),metadata.Usage)
 	fmt.Fprintf(commandHelp, "%s\n", Bold("FLAGS"))
 	for n := 0; n < len(metadata.Flags); n++ {
 		if flag, ok := metadata.Flags[n].(cli.StringFlag); ok {
-			fmt.Fprintf(commandHelp, "\t%s\t%s\n",flag.Name,flag.Usage)
+			if(flag.Name != "-u" && flag.Name != "-c"){
+				fmt.Fprintf(commandHelp, "\t%s\t%s\n",flag.Name,flag.Usage)
+			}
 		}
 	}
-	tm.Println(commandHelp)
-	tm.Flush()
+	tablemanagement.Println(commandHelp)
+	tablemanagement.Flush()
 
 }
 

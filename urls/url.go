@@ -1,3 +1,6 @@
+
+
+
 /*
  * Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
@@ -22,25 +25,27 @@ type Urls struct {
 	ListApps string
 	ListVersions string
 	CreateApp string
-	Exit string
+	Logout string
 	GetAppInfo string
 	CreateArtifact string
 	GetBuildSuccessInfo string
 	PrintLogs string
+	DeleteApp string
 }
 
 //getUrls returns a Urls object with urls for each api cal.
 func GetUrls()Urls{
 	return Urls{
-		Login :"https://203.94.95.207:9443/appmgt/site/blocks/user/login/ajax/login.jag",
-		ListApps :"https://203.94.95.207:9443/appmgt/site/blocks/application/get/ajax/list.jag",
-		ListVersions : "https://203.94.95.207:9443/appmgt/site/blocks/application/get/ajax/list.jag",
-		CreateApp : "https://203.94.95.207:9443/appmgt/site/blocks/application/add/ajax/add.jag",
-		Exit :"",
-		GetAppInfo : "https://203.94.95.207:9443/appmgt/site/blocks/application/get/ajax/list.jag",
-		CreateArtifact :"https://203.94.95.207:9443/appmgt/site/blocks/reposBuilds/add/ajax/add.jag",
-		GetBuildSuccessInfo : "https://203.94.95.207:9443/appmgt/site/blocks/reposBuilds/list/ajax/list.jag",
-		PrintLogs : "https://203.94.95.207:9443/appmgt/site/blocks/reposBuilds/get/ajax/get.jag",
+		Login : "https://apps.cloud.wso2.com/appmgt/site/blocks/user/login/ajax/login.jag",
+		ListApps : "https://apps.cloud.wso2.com/appmgt/site/blocks/application/get/ajax/list.jag",
+		ListVersions : "https://apps.cloud.wso2.com/appmgt/site/blocks/application/get/ajax/list.jag",
+		CreateApp : "https://apps.cloud.wso2.com/appmgt/site/blocks/application/add/ajax/add.jag",
+		Logout : "https://apps.cloud.wso2.com/appmgt/site/blocks/user/logout/ajax/logout.jag",
+		GetAppInfo : "https://apps.cloud.wso2.com/appmgt/site/blocks/application/get/ajax/list.jag",
+		CreateArtifact : "https://apps.cloud.wso2.com/appmgt/site/blocks/reposBuilds/add/ajax/add.jag",
+		GetBuildSuccessInfo : "https://apps.cloud.wso2.com/appmgt/site/blocks/reposBuilds/list/ajax/list.jag",
+		PrintLogs : "https://apps.cloud.wso2.com/appmgt/site/blocks/reposBuilds/get/ajax/get.jag",
+		DeleteApp : "https://apps.cloud.wso2.com/appmgt/site/blocks/application/delete/ajax/delete.jag",
 	}
 }
 

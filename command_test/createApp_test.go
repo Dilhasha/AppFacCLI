@@ -27,7 +27,7 @@ import (
 
 func TestNewAppCreation(t *testing.T) {
 	t.Log("Testing creation of AppCreation object")
-	url:= urls.GetUrls()
+	url := urls.GetUrls()
 	appCreation := command.NewAppCreation(url.CreateApp)
 
 	if(appCreation.Url != url.CreateApp) {
@@ -37,7 +37,7 @@ func TestNewAppCreation(t *testing.T) {
 
 func TestMetadata(t *testing.T){
 	t.Log("Testing metadata")
-	url:= urls.GetUrls()
+	url := urls.GetUrls()
 	appCreation := command.NewAppCreation(url.CreateApp)
 	metadata := appCreation.Metadata()
 
@@ -48,7 +48,7 @@ func TestMetadata(t *testing.T){
 
 func TestRun(t *testing.T){
 	t.Log("Testing metadata")
-	url:= urls.GetUrls()
+	url := urls.GetUrls()
 	appCreation := command.NewAppCreation(url.CreateApp)
 
 	configs := command.CommandConfigs{

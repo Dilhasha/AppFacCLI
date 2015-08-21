@@ -34,31 +34,36 @@ type Logout struct {
 
 func NewLogout(url string) (cmd Logout) {
 	return Logout{
-		Url:url,
+		Url : url,
 	}
 }
 
 /* Returns metadata for exit*/
 func (logout Logout)Metadata() CommandMetadata{
 	return CommandMetadata{
-		Name:"logout",
-		Description : "Logouts from a user session",
+		Name : "logout",
+		Description : "Logout from a user session",
 		ShortName : "lo",
-		Usage:"lo",
-		Url:logout.Url,
-		SkipFlagParsing:false,
-		Flags: []cli.Flag{
-			cli.StringFlag{Name: "-c", Usage: "cookie"},
+		Usage : "log out",
+		Url : logout.Url,
+		SkipFlagParsing : false,
+		Flags : []cli.Flag{
+			cli.StringFlag {Name: "-c", Usage: "cookie"},
 		},
 	}
 
 }
 
 /* Run calls the Run function of CommandConfigs and verifies the response from that call.*/
-func(logout Logout) Run(configs CommandConfigs)(bool,string){
-	var resp *http.Response
-	resp = configs.Run()
-	defer resp.Body.Close()
+func(logout Logout) Run(configs CommandConfigs)(bool , string){
+	resp := configs.Run()
+	//if request did not fail
+	if(resp != nil){
+		defer resp.Body.Close()
+	}else{
+		//exit the cli
+		return true, ""
+	}
 	body, _ := ioutil.ReadAll(resp.Body)
 	if (resp.Status == "200 OK") {
 		bodyString := string(body)
@@ -66,13 +71,13 @@ func(logout Logout) Run(configs CommandConfigs)(bool,string){
 		err := json.Unmarshal([]byte(bodyString), &errorFormat)
 		if (err == nil) {
 			if (errorFormat.ErrorCode == http.StatusUnauthorized) {
-				println(errorFormat.ErrorMessage)
+				fmt.Println(errorFormat.ErrorMessage)
 				fmt.Println("Your session has expired.Please login and try again!")
 				return false , configs.Cookie
 			}
 		}
-		println("Successfully logged out from appfac.")
+		fmt.Println("Successfully logged out from appfac.")
 
 	}
-	return true,configs.Cookie
+	return true , configs.Cookie
 }

@@ -42,9 +42,9 @@ func NewAppCreation(url string) (cmd AppCreation) {
 func (appCreation AppCreation)Metadata() CommandMetadata{
 	return CommandMetadata{
 		Name : "createNewApplication",
-		Description : "Creates a new application",
+		Description : "Creates a new application for user",
 		ShortName : "cap",
-		Usage : "create application",
+		Usage : "create app",
 		Url : appCreation.Url,
 		SkipFlagParsing : false,
 		Flags : []cli.Flag{
@@ -57,16 +57,18 @@ func (appCreation AppCreation)Metadata() CommandMetadata{
 			cli.StringFlag{Name: "-r", Usage: "repositoryType"},
 		},
 	}
-
 }
 
 /* Run calls the Run function of CommandConfigs and verifies the response from that call.*/
-func(appCreation AppCreation) Run(configs CommandConfigs) (bool,string){
-
-	var response *http.Response
-
-	response = configs.Run()
-	defer response.Body.Close()
+func(appCreation AppCreation) Run(configs CommandConfigs) (bool , string){
+	response := configs.Run()
+	//if request did not fail
+	if(response != nil){
+		defer response.Body.Close()
+	}else{
+		//exit the cli
+		return true, ""
+	}
 	body, _ := ioutil.ReadAll(response.Body)
 	if (response.Status == "200 OK") {
 		bodyString := string(body)
@@ -82,7 +84,6 @@ func(appCreation AppCreation) Run(configs CommandConfigs) (bool,string){
 		var successMessage formats.SuccessFormat
 		err = json.Unmarshal([]byte(bodyString), &successMessage)
 		if(err == nil){
-			fmt.Println("Application creation is successful.")
 			fmt.Println(successMessage.Message)
 		}
 	}else if (response.Status == "500 Internal Server Error") {

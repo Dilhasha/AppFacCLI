@@ -24,6 +24,7 @@ import (
 	"net/http"
 	"encoding/json"
 	"github.com/Dilhasha/AppFacCLI/cli/formats"
+	"fmt"
 )
 
 /* createArtifact is the implementation of the command to create an artifact and deploy it in app factory */
@@ -41,13 +42,13 @@ func NewArtifact(url string) (cmd Artifact) {
 /* Returns metadata for artifact creation*/
 func (artifact Artifact)Metadata() CommandMetadata{
 	return CommandMetadata{
-		Name:"createArtifact",
-		Description : "create artifact of an application",
+		Name : "createArtifact",
+		Description : "create an artifact of an application",
 		ShortName : "car",
-		Usage:"create artifact",
-		Url:artifact.Url,
-		SkipFlagParsing:false,
-		Flags: []cli.Flag{
+		Usage : "create artifact",
+		Url : artifact.Url,
+		SkipFlagParsing : false,
+		Flags : []cli.Flag{
 			cli.StringFlag{Name: "-a", Usage: "applicationKey"},
 			cli.StringFlag{Name: "-c", Usage: "cookie"},
 			cli.StringFlag{Name: "-v", Usage: "version"},
@@ -63,7 +64,13 @@ func (artifact Artifact)Metadata() CommandMetadata{
 /* Run calls the Run function of CommandConfigs and verifies the response from that call.*/
 func(artifact Artifact) Run(configs CommandConfigs)(bool,string){
 	response := configs.Run()
-	defer response.Body.Close()
+	//if request did not fail
+	if(response != nil){
+		defer response.Body.Close()
+	}else{
+		//exit the cli
+		return true, ""
+	}
 	body, _ := ioutil.ReadAll(response.Body)
 
 	bodyString := string(body)
@@ -72,10 +79,10 @@ func(artifact Artifact) Run(configs CommandConfigs)(bool,string){
 	err := json.Unmarshal([]byte(bodyString), &errorFormat)
 	if (err == nil) {
 			if (errorFormat.ErrorCode == http.StatusUnauthorized) {
-				println("Your session has expired.Please login and try again!")
+				fmt.Println("Your session has expired.Please login and try again!")
 				return false , configs.Cookie
 			}else{
-				println(bodyString)
+				fmt.Println(bodyString)
 			}
 	}
 	return true,configs.Cookie

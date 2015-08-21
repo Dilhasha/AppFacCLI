@@ -23,6 +23,7 @@ import (
 	"github.com/codegangsta/cli"
 	"encoding/json"
 	"github.com/Dilhasha/AppFacCLI/cli/formats"
+	"fmt"
 )
 
 /* BuildSuccessInfo is the implementation of the command to display the last build success details of an application. */
@@ -33,20 +34,20 @@ type BuildSuccessInfo struct {
 
 func NewBuildSuccessInfo(url string) (cmd BuildSuccessInfo) {
 	return BuildSuccessInfo{
-		Url:url,
+		Url : url,
 	}
 }
 
 /* Returns metadata for build success information.*/
 func (buildSuccessInfo BuildSuccessInfo)Metadata() CommandMetadata{
 	return CommandMetadata{
-		Name:"getBuildAndDeployStatusForVersion",
-		Description : "get the last build success details of a particular version",
+		Name : "getBuildAndDeployStatusForVersion",
+		Description : "get last build success details of a particular version of an application",
 		ShortName : "bs",
-		Usage:"get build success info",
-		Url:buildSuccessInfo.Url,
-		SkipFlagParsing:false,
-		Flags: []cli.Flag{
+		Usage :"get build success info",
+		Url : buildSuccessInfo.Url,
+		SkipFlagParsing : false,
+		Flags : []cli.Flag{
 			cli.StringFlag{Name: "-a", Usage: "applicationKey"},
 			cli.StringFlag{Name: "-v", Usage: "version"},
 			cli.StringFlag{Name: "-c", Usage: "cookie"},
@@ -58,7 +59,13 @@ func (buildSuccessInfo BuildSuccessInfo)Metadata() CommandMetadata{
 func(buildSuccessInfo BuildSuccessInfo) Run(configs CommandConfigs)(bool,string){
 	var resp *http.Response
 	resp = configs.Run()
-	defer resp.Body.Close()
+	//if request did not fail
+	if(resp != nil){
+		defer resp.Body.Close()
+	}else{
+		//exit the cli
+		return true, ""
+	}
 	body, _ := ioutil.ReadAll(resp.Body)
 	if (resp.Status == "200 OK") {
 		bodyString := string(body)
@@ -68,17 +75,17 @@ func(buildSuccessInfo BuildSuccessInfo) Run(configs CommandConfigs)(bool,string)
 		err := json.Unmarshal([]byte(bodyString), &errorFormat)
 		if (err == nil) {
 				if (errorFormat.ErrorCode == http.StatusUnauthorized) {
-					println("Your session has expired.Please login and try again!")
+					fmt.Println("Your session has expired.Please login and try again!")
 					return false , configs.Cookie
 				}else{
 					err = json.Unmarshal([]byte(bodyString), &buildSuccessFormat)
 					if (err == nil) {
-						println("Build ID is: ",buildSuccessFormat.BuildId)
-						println("Build status is: ",buildSuccessFormat.BuildStatus)
-						println("Deployed Id is: ",buildSuccessFormat.DeployedId)
+						fmt.Println("Build ID is: ",buildSuccessFormat.BuildId)
+						fmt.Println("Build status is: ",buildSuccessFormat.BuildStatus)
+						fmt.Println("Deployed Id is: ",buildSuccessFormat.DeployedId)
 					}
 				}
 		}
 	}
-	return true,configs.Cookie
+	return true , configs.Cookie
 }

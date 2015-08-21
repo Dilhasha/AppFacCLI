@@ -34,20 +34,20 @@ type VersionsList struct {
 
 func NewVersionsList(url string) (cmd VersionsList) {
 	return VersionsList{
-		Url:url,
+		Url : url,
 	}
 }
 
 /* Returns metadata for listing versions.*/
 func (versionsList VersionsList)Metadata() CommandMetadata{
 	return CommandMetadata{
-		Name:"getAppVersionsInStage",
+		Name : "getAppVersionsInStage",
 		Description : "Lists versions of an application in a stage",
 		ShortName : "lv",
-		Usage:"list versions",
-		SkipFlagParsing:false,
-		Url:versionsList.Url,
-		Flags: []cli.Flag{
+		Usage : "list versions",
+		SkipFlagParsing : false,
+		Url : versionsList.Url,
+		Flags : []cli.Flag{
 			cli.StringFlag{Name: "-u", Usage: "userName"},
 			cli.StringFlag{Name: "-s", Usage: "stageName"},
 			cli.StringFlag{Name: "-a", Usage: "applicationKey"},
@@ -56,20 +56,22 @@ func (versionsList VersionsList)Metadata() CommandMetadata{
 	}
 }
 
-
 /* Run calls the Run function of CommandConfigs and verifies the response from that call.*/
 func(versionsList VersionsList) Run(configs CommandConfigs)(bool,string){
-	var resp *http.Response
-	resp = configs.Run()
-	defer resp.Body.Close()
+	resp := configs.Run()
+	//if request did not fail
+	if(resp != nil){
+		defer resp.Body.Close()
+	}else{
+		//exit the cli
+		return true, ""
+	}
 	body, _ := ioutil.ReadAll(resp.Body)
 
 	if (resp.Status == "200 OK") {
-
 		bodyString := string(body)
 		var errorFormat formats.ErrorFormat
 		err := json.Unmarshal([]byte(bodyString), &errorFormat)
-
 		if (err == nil) {
 			if (errorFormat.ErrorCode == http.StatusUnauthorized) {
 				fmt.Println("Your session has expired.Please login and try again!")
@@ -78,10 +80,10 @@ func(versionsList VersionsList) Run(configs CommandConfigs)(bool,string){
 		}else{
 			var appVersions []formats.AppVersionFormat
 			err := json.Unmarshal([]byte(bodyString), &appVersions)
-			if(err ==nil){
+			if(err == nil){
 				fmt.Println("\nApplication has ", len(appVersions[0].Versions)," versions. Details of versions are as follows.\n")
 				for _, appVersion := range appVersions {
-					versions:=appVersion.Versions
+					versions := appVersion.Versions
 					totals := tm.NewTable(0, 10, 5, ' ', 0)
 					fmt.Fprintf(totals, "Version\tAutoDeploy\tStage\tRepoURL\n")
 					fmt.Fprintf(totals, "-------\t---------\t-----\t-----------\n")
@@ -93,7 +95,6 @@ func(versionsList VersionsList) Run(configs CommandConfigs)(bool,string){
 					tm.Flush()
 				}
 			}
-
 		}
 	}
 	return true,configs.Cookie

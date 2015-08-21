@@ -38,20 +38,20 @@ type BuildApp struct {
 
 func NewBuildApp(url string) (cmd BuildApp) {
 	return BuildApp{
-		Url:url,
+		Url : url,
 	}
 }
 
 /* Returns metadata for triggering a build.*/
 func (buildApp BuildApp)Metadata() CommandMetadata{
 	return CommandMetadata{
-		Name:"triggerBuild",
-		Description : "triggers a build for an app and waits until its success",
+		Name : "triggerBuild",
+		Description : "trigger a build for an app, wait until its success and display build logs",
 		ShortName : "tb",
-		Usage:"triggering a build",
-		Url: buildApp.Url,
-		SkipFlagParsing:false,
-		Flags: []cli.Flag{
+		Usage : "triggering a build",
+		Url : buildApp.Url,
+		SkipFlagParsing : false,
+		Flags : []cli.Flag{
 			cli.StringFlag{Name: "-a", Usage: "applicationKey"},
 			cli.StringFlag{Name: "-v", Usage: "version"},
 			cli.StringFlag{Name: "-c", Usage: "cookie"},
@@ -68,7 +68,13 @@ func(buildApp BuildApp) Run(configs CommandConfigs)(bool,string){
 	configs.Query = query
 
 	response := configs.Run()
-	defer response.Body.Close()
+	//if request did not fail
+	if(response != nil){
+		defer response.Body.Close()
+	}else{
+		//exit the cli
+		return true, ""
+	}
 	body, _ := ioutil.ReadAll(response.Body)
 
 	bodyStr := string(body)
@@ -78,19 +84,18 @@ func(buildApp BuildApp) Run(configs CommandConfigs)(bool,string){
 
 	//waitFlag := false
 	if (err == nil) {
-		//<TODO> Make these error checking functionality common
 		if (errorFormat.ErrorCode == http.StatusUnauthorized) {
-				println("Your session has expired. Please login and try again!")
+				fmt.Println("Your session has expired. Please login and try again!")
 				return false , configs.Cookie
 		}
 	}
 	//Ask whether user wants to wait
-	println("Build has been triggered...")
-	println("Do you want to wait until build success? ( Y - Yes , N - No )")
+	fmt.Println("Build has been triggered...")
+	fmt.Println("Do you want to wait until build success? ( Y - Yes , N - No )")
 	fmt.Scanf("%s", &bodyStr)
 	//User chooses to wait
 	if(bodyStr == "Y" || bodyStr == "YES"){
-		println("waiting...")
+		fmt.Println("waiting...")
 		//Construct query for getting last build success id
 		query := configs.Query
 		query = strings.Replace(query, "createArtifact" , "getBuildAndDeployStatusForVersion" , 1)
@@ -108,7 +113,7 @@ func(buildApp BuildApp) Run(configs CommandConfigs)(bool,string){
 		}
 		if(buildId == id +1){
 			//Build is successful
-			println("\nThe build has been successful. Displaying build logs below..\n")
+			fmt.Println("\nThe build has been successful. Displaying build logs below..\n")
 			query := configs.Query
 			query = strings.Replace(query, "getBuildAndDeployStatusForVersion" , "printBuildLogs" , 1)
 			query = strings.Replace(query, "version" , "applicationVersion" , 1)
@@ -133,7 +138,13 @@ func(buildApp BuildApp) Run(configs CommandConfigs)(bool,string){
 func checkBuildId(configs CommandConfigs)(bool,int64) {
 	var resp *http.Response
 	resp = configs.Run()
-	defer resp.Body.Close()
+	//if request did not fail
+	if(resp != nil){
+		defer resp.Body.Close()
+	}else{
+		//exit the cli
+		return false, -1
+	}
 	body, _ := ioutil.ReadAll(resp.Body)
 	if (resp.Status == "200 OK") {
 		bodyString := string(body)
@@ -143,7 +154,7 @@ func checkBuildId(configs CommandConfigs)(bool,int64) {
 		err := json.Unmarshal([]byte(bodyString), &errorFormat)
 		if (err == nil) {
 			if (errorFormat.ErrorCode == http.StatusUnauthorized) {
-				println("Your session has expired. Please login and try again!")
+				fmt.Println("Your session has expired. Please login and try again!")
 				return false, -1
 			}else {
 				err = json.Unmarshal([]byte(bodyString), &buildSuccessFormat)
@@ -161,7 +172,7 @@ func getTenantDomain() string{
 	//Read username from session file and split the tenant domain
 	//If session file exists
 	filename := "session.txt"
-	sessionObject:=session.NewSession()
+	sessionObject := session.NewSession()
 	if _, err := os.Stat(filename); err == nil {
 		//Read session data
 		data, err := ioutil.ReadFile(filename)
@@ -171,9 +182,9 @@ func getTenantDomain() string{
 		//Get session data into a session object
 		err = json.Unmarshal(data, &sessionObject)
 		if (err != nil) {
-			println("Error occured while getting stored session.")
+			fmt.Println("Error occured while getting stored session.")
 		}
-		arrays:=strings.Split(sessionObject.UserName,"@")
+		arrays := strings.Split(sessionObject.UserName,"@")
 		return arrays[len(arrays) - 1]
 	}
 	return ""

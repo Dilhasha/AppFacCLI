@@ -21,6 +21,7 @@ import (
 	"net/http"
 	"crypto/tls"
 	"bytes"
+	"fmt"
 )
 
 type CommandConfigs struct {
@@ -34,7 +35,7 @@ func (configs CommandConfigs) Run() (*http.Response){
 	var query = []byte(configs.Query)
 	//Create a new request
 	request, err := http.NewRequest("POST", configs.Url, bytes.NewBuffer(query))
-	request.Header.Set("Content-Type","application/x-www-form-urlencoded")
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	request.Header.Set("Cookie", configs.Cookie)
 	//Disable security check
 	transport := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
@@ -42,7 +43,7 @@ func (configs CommandConfigs) Run() (*http.Response){
 	//Send the request
 	response, err := client.Do(request)
 	if err != nil {
-		panic(err)
+		fmt.Println("Error while performing request : ", err)
 	}
 	return response
 }

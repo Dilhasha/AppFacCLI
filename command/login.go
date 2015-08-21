@@ -21,9 +21,7 @@ import (
 	"fmt"
 	"strings"
 	"io/ioutil"
-	"net/http"
 	"github.com/codegangsta/cli"
-
 )
 
 /* Login is the implementation of the command to log into a user account in app factory */
@@ -33,20 +31,20 @@ type Login struct {
 
 func NewLogin(url string) (cmd Login) {
 	return Login{
-		Url:url,
+		Url : url,
 	}
 }
 
 /* Returns metadata for login.*/
 func (login Login)Metadata() CommandMetadata{
 	return CommandMetadata{
-		Name:"login",
+		Name : "login",
 		Description : "Login to app factory",
 		ShortName : "l",
-		Usage:"login",
-		Url:login.Url,
-		SkipFlagParsing:true,
-		Flags: []cli.Flag{
+		Usage : "login",
+		Url : login.Url,
+		SkipFlagParsing : true,
+		Flags : []cli.Flag{
 			cli.StringFlag{Name:"-u",Usage:"userName"},
 			cli.StringFlag{Name: "-p", Usage: "password"},
 		},
@@ -54,22 +52,26 @@ func (login Login)Metadata() CommandMetadata{
 }
 
 /* Run calls the Run function of CommandConfigs and verifies the response from that call.*/
-func(login Login) Run(configs CommandConfigs)(bool,string){
-	var resp *http.Response
-	resp=configs.Run()
-	defer resp.Body.Close()
-
+func(login Login) Run(configs CommandConfigs)(bool , string){
+	resp := configs.Run()
+	//if request did not fail
+	if(resp != nil){
+		defer resp.Body.Close()
+	}else{
+		//exit the cli
+		return true, ""
+	}
 	if(resp.Status == "200 OK"){
 		body, _ := ioutil.ReadAll(resp.Body)
 		bodyString := string(body)
 		if(strings.Contains(bodyString, "true")){
 			fmt.Println("You have Successfully logged in.")
 			cookie := strings.Split(resp.Header.Get("Set-Cookie"),";")
-			configs.Cookie=cookie[0]
+			configs.Cookie = cookie[0]
 
 		}else{
 			fmt.Println("Authorization failed. Please try again!")
-			return false,configs.Cookie
+			return false , configs.Cookie
 		}
 	}
 	return true,configs.Cookie

@@ -21,9 +21,6 @@ import (
 	"bytes"
 	"github.com/codegangsta/cli"
 	"github.com/Dilhasha/AppFacCLI/cli/urls"
-	"io/ioutil"
-	"os"
-	"encoding/json"
 )
 
 const (
@@ -33,12 +30,12 @@ const (
 	equator = "="
 )
 
-type ConcreteFactory struct {
+type CommandFactory struct {
 	CmdsByName map[string]Command
 }
 
 /*GetByCmdName returns command given the command name or short name*/
-func (factory ConcreteFactory) CheckIfCommandExists(cmdName string) (string,bool) {
+func (factory CommandFactory) CheckIfCommandExists(cmdName string) (string,bool) {
 	cmd , found := factory.CmdsByName[cmdName]
 	if !found {
 		for _, command := range factory.CmdsByName {
@@ -47,15 +44,13 @@ func (factory ConcreteFactory) CheckIfCommandExists(cmdName string) (string,bool
 				return command.Metadata().Name,true
 			}
 		}
-		return "",false
+		return "" , false
 	}
-	return cmd.Metadata().Name,true
+	return cmd.Metadata().Name , true
 }
 
-
-
 /* NewFactory returns a new concreteFactory with with a map of commands.*/
-func NewFactory() (factory ConcreteFactory) {
+func NewFactory() (factory CommandFactory) {
 	//Get Urls
 	urls := urls.GetUrls()
 	//Create map of commands
@@ -75,7 +70,7 @@ func NewFactory() (factory ConcreteFactory) {
 }
 
 /* GetCommandFlags converts flags into a list of strings.*/
-func (factory ConcreteFactory) GetCommandFlags(command Command) []string {
+func (factory CommandFactory) GetCommandFlags(command Command) []string {
 	var flags []string
 	for _, flag := range command.Metadata().Flags {
 		switch flagType := flag.(type) {
@@ -88,10 +83,9 @@ func (factory ConcreteFactory) GetCommandFlags(command Command) []string {
 }
 
 /* GetCommandConfigs returns a CommandConfigs struct based on flags nd flag values.*/
-func (factory ConcreteFactory) GetCommandConfigs(command Command,flagValues []string) CommandConfigs {
-
+func (factory CommandFactory) GetCommandConfigs(command Command , flagValues []string) CommandConfigs {
 	var buffer bytes.Buffer
-	flags:=command.Metadata().Flags
+	flags := command.Metadata().Flags
 	var cookie string
 
 	buffer.WriteString(queryStarter + equator + command.Metadata().Name)
@@ -104,7 +98,7 @@ func (factory ConcreteFactory) GetCommandConfigs(command Command,flagValues []st
 		}
 	}
 
-	for n := 0; n < len(flags); n++ {
+	for n := 0 ; n < len(flags) ; n++ {
 		//If flag is a string flag
 		if flag, ok := flags[n].(cli.StringFlag); ok {
 			if(flag.Usage == "cookie"){
@@ -124,19 +118,4 @@ func (factory ConcreteFactory) GetCommandConfigs(command Command,flagValues []st
 	}
 }
 
-/*Get url values from file to a Urls object*/
-func getURLs(filename string)(urls.Urls){
-	var urlValues urls.Urls
-	if _ , err := os.Stat(filename); err == nil {
-		data, err := ioutil.ReadFile(filename)
-		if err != nil {
-			panic (err)
-		}
-		err = json.Unmarshal(data , &urlValues)
-		if (err != nil) {
-			panic (err)
-		}
-	}
-	return urlValues
-}
 

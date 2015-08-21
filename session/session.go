@@ -15,6 +15,8 @@
  *   specific language governing permissions and limitations
  *   under the License.
  */
+
+/*This package handles the session objects for a user session.*/
 package session
 
 type Session struct {
@@ -22,9 +24,10 @@ type Session struct {
 	Cookie string
 }
 
+//NewSession returns a new session object
 func NewSession()(Session){
 	return Session{
-		UserName:"",
+		UserName : "",
 		Cookie : "",
 	}
 

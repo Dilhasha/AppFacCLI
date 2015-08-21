@@ -35,7 +35,7 @@ func AskForPassword(prompt string) (passwd string) {
 	fmt.Printf(prompt + "> ")
 
 	// File descriptors for stdin, stdout, and stderr.
-	fd := []uintptr{os.Stdin.Fd(), os.Stdout.Fd(), os.Stderr.Fd()}
+	fd := [] uintptr {os.Stdin.Fd(), os.Stdout.Fd(), os.Stderr.Fd()}
 
 	// Setup notifications of termination signals to channel sig, create a process to
 	// watch for these signals so we can turn back on echo if need be.
@@ -75,7 +75,7 @@ func readPassword(pid int) string {
 // their terminal.
 func catchSignal(fd []uintptr, sig chan os.Signal) {
 	select {
-	case <-sig:
+	case <- sig:
 		echoOn(fd)
 		os.Exit(2)
 	}

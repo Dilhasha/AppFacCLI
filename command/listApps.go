@@ -36,20 +36,20 @@ type AppList struct {
 
 func NewAppList(url string) (cmd AppList) {
 	return AppList{
-		Url:url,
+		Url : url,
 	}
 }
 
 /* Returns metadata for listing application details of a user.*/
 func (appList AppList)Metadata() CommandMetadata{
 	return CommandMetadata{
-		Name:"getApplicationsOfUser",
+		Name : "getApplicationsOfUser",
 		Description : "Lists applications of a user",
 		ShortName : "la",
-		Usage:"list apps",
-		Url:appList.Url,
-		SkipFlagParsing:false,
-		Flags: []cli.Flag{
+		Usage : "list apps",
+		Url : appList.Url,
+		SkipFlagParsing : false,
+		Flags : []cli.Flag{
 			cli.StringFlag{Name: "-u", Usage: "userName"},
 			cli.StringFlag{Name: "-c", Usage: "cookie"},
 		},
@@ -58,10 +58,15 @@ func (appList AppList)Metadata() CommandMetadata{
 }
 
 /* Run calls the Run function of CommandConfigs and verifies the response from that call.*/
-func(applist AppList) Run(configs CommandConfigs)(bool,string){
-	var resp *http.Response
-	resp = configs.Run()
-	defer resp.Body.Close()
+func(applist AppList) Run(configs CommandConfigs)(bool , string){
+	resp := configs.Run()
+	//if request did not fail
+	if(resp != nil){
+		defer resp.Body.Close()
+	}else{
+		//exit the cli
+		return true, ""
+	}
 	body, _ := ioutil.ReadAll(resp.Body)
 	if (resp.Status == "200 OK") {
 		bodyString := string(body)
@@ -69,14 +74,14 @@ func(applist AppList) Run(configs CommandConfigs)(bool,string){
 		err := json.Unmarshal([]byte(bodyString), &errorFormat)
 		if (err == nil) {
 			if (errorFormat.ErrorCode == http.StatusUnauthorized) {
-				println(errorFormat.ErrorMessage)
+				fmt.Println(errorFormat.ErrorMessage)
 				fmt.Println("Your session has expired.Please login and try again!")
 				return false , configs.Cookie
 			}
 		}else{
 			var apps []formats.AppFormat
 			err := json.Unmarshal([]byte(bodyString), &apps)
-			if(err ==nil){
+			if(err == nil){
 				fmt.Println("\nYou have ", len(apps)," applications. Details of applications are as follows.\n")
 				totals := tm.NewTable(0, 10, 5, ' ', 0)
 				fmt.Fprintf(totals, "Name\tKey\tType\n")
@@ -87,9 +92,6 @@ func(applist AppList) Run(configs CommandConfigs)(bool,string){
 				tm.Println(totals)
 				tm.Flush()
 			}
-
-
-
 		}
 	}
 	return true,configs.Cookie
