@@ -37,11 +37,4 @@ e.g. : https://apps.cloud.wso2.com
 
 # The built 'appfac' executable can be used even without installing 'GO'
 
-#
-
-
-#Install
-Add the executable to the PATH variable by, export PATH=<path of appfac executable>:$PATH , 
-Access using ‘appfac
-
 
