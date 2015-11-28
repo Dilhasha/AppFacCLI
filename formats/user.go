@@ -17,7 +17,7 @@
  */
 package formats
 
-type UserFormat struct {
+type User struct {
 	UserName string
 	FirstName string
 	LastName string

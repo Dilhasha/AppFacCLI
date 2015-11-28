@@ -17,7 +17,7 @@
  */
 package formats
 
-type AppVersionFormat struct {
+type AppVersion struct {
 	Key string
 	Owner string
 	Type string
@@ -35,6 +35,6 @@ type AppVersionFormat struct {
 	RepoAccessability string
 	InProduction bool
 	ApplicationCreationStatus string
-	Users []UserFormat
+	Users []User
 	Versions []VersionFormat
 }

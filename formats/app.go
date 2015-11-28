@@ -17,7 +17,7 @@
  */
 package formats
 
-type AppFormat struct {
+type App struct {
 	Key string
 	Owner string
 	Type string
@@ -35,6 +35,6 @@ type AppFormat struct {
 	RepoAccessability string
 	InProduction bool
 	ApplicationCreationStatus string
-	Users []UserFormat
+	Users []User
 
 }
