@@ -7,12 +7,19 @@ First clone the repository : git clone git@github.com:Dilhasha/AppFacCLI.git
 Checkout tag 1.0.6 : git checkout -b v1.0.6 appfac-cli-1.0.6
 
 # Build
+Please refer below docmentation to install go
+https://golang.org/doc/install
+
+Then set your GOPATH accordingly.
+e.g. If you are on ubuntu add GOPATH to "/etc/profile"
+e.g. export GOPATH=/usr/local/go/bin
+
 To clone and build the project, 
-run "build" script, 
+run "./bin/build" script, 
 Executables get created at “out” directory
 
 #Install
-Add the executable to the PATH variable by, export PATH=<path of appfac executable>:$PATH , 
-Access using ‘appfac
+Add the executable to the PATH variable by, export PATH=<path of appfac executable>:$PATH 
+Access using "appfac"
 
 
