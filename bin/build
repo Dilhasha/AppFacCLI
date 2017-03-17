@@ -1,6 +1,9 @@
 #!/bin/bash
 
 set -e
+echo -e "\nGo get dependencies..."
+go get github.com/buger/goterm
+go get github.com/codegangsta/cli
 
 echo -e "\nGenerating Binary..."
 
